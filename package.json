@@ -1,32 +1,41 @@
 {
-	"name": "localstoragedb",
-	"version": "2.3.2",
-	"description": "localStorageDB is a simple layer over localStorage (and sessionStorage) that provides a set of functions to store structured data like databases and tables. It provides basic insert/update/delete/query capabilities. localStorageDB has no dependencies, and is not based on WebSQL. Underneath it all, the structured data is stored as serialized JSON in localStorage or sessionStorage.",
-	"main": "dist/localstoragedb.js",
-	"types": "dist/localstoragedb.d.ts",
-	"files": [
-		"dist"
-	],
-	"scripts": {
-		"build": "tsc",
-		"prepare": "npm run build",
-		"prepublishOnly": "npm run build"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/knadh/localStorageDB.git"
-	},
-	"keywords": [
-		"localStorage",
-		"database"
-	],
-	"author": "Kailash Nadh <kailash.nadh@gmail.com>",
-	"license": "MIT",
-	"bugs": {
-		"url": "https://github.com/knadh/localStorageDB/issues"
-	},
-	"homepage": "https://github.com/knadh/localStorageDB",
-	"devDependencies": {
-		"typescript": "^5.8.3"
-	}
+  "name": "client-db",
+  "version": "0.3.0",
+  "description": "clientDB is a simple layer over localStorage (and sessionStorage) that provides a set of functions to store structured data like databases and tables. It provides basic insert/update/delete/query capabilities. localStorageDB has no dependencies, and is not based on WebSQL. Underneath it all, the structured data is stored as serialized JSON in localStorage or sessionStorage.",
+  "main": "dist/clientDB.js",
+  "types": "dist/clientDB.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
+    "test": "cypress run",
+    "test:open": "cypress open",
+    "test:server": "node tests/server.js",
+    "test:coverage": "cypress run --env coverage=true",
+    "coverage:report": "nyc report --reporter=text-summary",
+    "coverage:open": "npx open-cli coverage/index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spinningideas/client-db.git"
+  },
+  "keywords": [
+    "localStorage",
+    "database"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/spinningideas/clientDB/issues"
+  },
+  "homepage": "https://github.com/spinningideas/clientDB",
+  "devDependencies": {
+		"cypress": "^14.3.3",
+    "typescript": "^5.8.3",
+    "@cypress/code-coverage": "^3.12.0",
+    "istanbul-lib-coverage": "^3.2.0",
+    "nyc": "^15.1.0"
+  }
 }

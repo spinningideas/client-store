@@ -1,0 +1,26 @@
+{
+  "all": true,
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "**/*.d.ts",
+    "cypress/**/*.*",
+    "tests/**/*.*",
+    "coverage/**/*.*"
+  ],
+  "reporter": [
+    "html",
+    "text",
+    "text-summary"
+  ],
+  "report-dir": "coverage",
+  "extension": [
+    ".ts"
+  ],
+  "check-coverage": true,
+  "statements": 75,
+  "branches": 75,
+  "functions": 75,
+  "lines": 75
+}

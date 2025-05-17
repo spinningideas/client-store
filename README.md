@@ -8,58 +8,36 @@ A simple database layer for localStorage
 npm install client-db
 ```
 
-# localStorageDB 2.3.2
+# clientDB 2.3.2
 
-localStorageDB is a simple layer over localStorage (and sessionStorage) that provides
-a set of functions to store structured data like databases and tables.
+clientDB is a simple layer over localStorage (and sessionStorage) that provides a set of functions to store structured data like databases and tables.
+
 It provides basic insert/update/delete/query capabilities.
-localStorageDB has no dependencies, and is not based on WebSQL. Underneath it all,
-the structured data is stored as serialized JSON in localStorage or sessionStorage.
+clientDB has no dependencies, and is not based on WebSQL. Underneath it all, the structured data is stored as serialized JSON in localStorage or sessionStorage.
 
-- Kailash Nadh
-- v 2.3.2 Mar 2018 Contribution: Ken Kohler
-- v 2.3.1 Mar 2015
-- v 2.3.0 Feb 2014 Contribution: Christian Kellner (http://orange-coding.net)
-- v 2.2 Jan 2014 Contribution: Andy Hawkins (http://a904guy.com)
-- v 2.1 Nov 2013
-- v 2.0 Jun 2013
-- v 1.9 Nov 2012
-- Documentation: [http://nadh.in/code/localstoragedb](http://nadh.in/code/localstoragedb)
+- Inspired by localStorageDB by Kailash Nadh (https://github.com/knadh/localStorageDB)
+
 - Licensed: MIT license
 
 # Installation
 
 ## NPM
 
-`npm install localstoragedb`
+`npm install clientDB`
 
 ## Yarn
 
-`yarn add localstoragedb`
+`yarn add clientDB`
 
 ## Bower
 
-`bower install localstoragedb`
+`bower install clientDB`
 
 # Run Test Cases
 
-```shell
-bower install # install mocha and chai for running test cases
-```
-
-`open test/local_storage_db_test.html in Browser to check the result`
-
 # Supported Browsers
 
-Browsers need to support "Local Storage" in order to make localeStorageDB working.
-
-- IE 8<
-- Firefox 31<
-- Chrome 31<
-- Safari 7<
-- iOS Safari 7.1<
-- Android Browser 4.1<
-- Chrome for Android 42<
+Browsers need to support "Local Storage" in order for clientDB to function.
 
 # Usage / Examples
 
@@ -67,7 +45,7 @@ Browsers need to support "Local Storage" in order to make localeStorageDB workin
 
 ```javascript
 // Initialise. If the database doesn't exist, it is created
-var lib = new localStorageDB("library", localStorage);
+var lib = new clientDB("library", localStorage);
 
 // Check if the database was just created. Useful for initial database setup
 if (lib.isNew()) {
@@ -413,7 +391,7 @@ lib.commit(); // commit the deletions to localStorage
 	</thead>
 	<tbody>
 		<tr>
-			<td>localStorageDB()</td>
+			<td>clientDB()</td>
 			<td>database_name, storage_engine</td>
 			<td>Constructor<br />
 				- storage_engine can either be localStorage (default) or sessionStorage
@@ -446,24 +424,24 @@ lib.commit(); // commit the deletions to localStorage
 		</tr>
 		<tr>
 			<td>tableExists()</td>
-			<td>table_name</td>
+			<td>tableName</td>
 			<td>Checks whether a table exists in the database</td>
 		</tr>
 		<tr>
 			<td>tableFields()</td>
-			<td>table_name</td>
+			<td>tableName</td>
 			<td>Returns the list of fields of a table</td>
 		</tr>
 		<tr>
 			<td>createTable()</td>
-			<td>table_name, fields</td>
+			<td>tableName, fields</td>
 			<td>Creates a table<br />
 				- fields is an array of string fieldnames. 'ID' is a reserved fieldname.
 			</td>
 		</tr>
 		<tr>
 			<td>createTableWithData()</td>
-			<td>table_name, rows</td>
+			<td>tableName, rows</td>
 			<td>Creates a table and populates it<br />
 				- rows is an array of object literals where each object represents a record<br />
 				[{field1: val, field2: val}, {field1: val, field2: val}]
@@ -471,7 +449,7 @@ lib.commit(); // commit the deletions to localStorage
 		</tr>
 		<tr>
 			<td>alterTable()</td>
-			<td>table_name, new_fields, default_values</td>
+			<td>tableName, new_fields, default_values</td>
 			<td>Alter a table<br />
 				- new_fields can be a array of columns OR a string of single column.<br />
 				- default_values (optional) can be a object of column's default values OR a default value string for single column for existing rows.
@@ -479,27 +457,27 @@ lib.commit(); // commit the deletions to localStorage
 		</tr>
 		<tr>
 			<td>dropTable()</td>
-			<td>table_name</td>
+			<td>tableName</td>
 			<td>Deletes a table from the database</td>
 		</tr>
 		<tr>
 			<td>truncate()</td>
-			<td>table_name</td>
+			<td>tableName</td>
 			<td>Empties all records in a table and resets the internal auto increment ID to 0</td>
 		</tr>
 		<tr>
 			<td>columnExists()</td>
-			<td>table_name, field_name</td>
+			<td>tableName, field_name</td>
 			<td>Checks whether a column exists in database table.</td>
 		</tr>
 		<tr>
 			<td>rowCount()</td>
-			<td>table_name</td>
+			<td>tableName</td>
 			<td>Returns the number of rows in a table</td>
 		</tr>
 		<tr>
 			<td>insert()</td>
-			<td>table_name, data</td>
+			<td>tableName, data</td>
 			<td>Inserts a row into a table and returns its numerical ID<br />
 				- data is an object literal with field-values<br />
 				Every row is assigned an auto-incremented numerical ID automatically
@@ -507,12 +485,12 @@ lib.commit(); // commit the deletions to localStorage
 		</tr>
     	<tr>
 			<td>query() DEPRECATED</td>
-			<td>table_name, query, limit, start, sort</td>
+			<td>tableName, query, limit, start, sort</td>
 			<td></td>
 		</tr>
         <tr>
 			<td>queryAll()</td>
-			<td>table_name, params{}</td>
+			<td>tableName, params{}</td>
 			<td>
 				Returns an array of rows (object literals) from a table matching the query.<br />
 				- query is either an object literal or null. If query is not supplied, all rows are returned<br />
@@ -524,7 +502,7 @@ lib.commit(); // commit the deletions to localStorage
 		</tr>
 		<tr>
 			<td>update()</td>
-			<td>table_name, query, update_function</td>
+			<td>tableName, query, update_function</td>
 			<td>Updates existing records in a table matching query, and returns the number of rows affected<br />
 				- query is an object literal or a function. If query is not supplied, all rows are updated<br />
 				- update_function is a function that returns an object literal with the updated values
@@ -532,7 +510,7 @@ lib.commit(); // commit the deletions to localStorage
 		</tr>
 			<tr>
 				<td>insertOrUpdate()</td>
-				<td>table_name, query, data</td>
+				<td>tableName, query, data</td>
 				<td>Inserts a row into a table if the given query matches no results, or updates the rows matching the query.<br />
 					- query is either an object literal, function, or null.<br />
 					- data is an object literal with field-values
@@ -542,7 +520,7 @@ lib.commit(); // commit the deletions to localStorage
 			</tr>
 		<tr>
 			<td>deleteRows()</td>
-			<td>table_name, query</td>
+			<td>tableName, query</td>
 			<td>Deletes rows from a table matching query, and returns the number of rows deleted<br />
 				- query is either an object literal or a function. If query is not supplied, all rows are deleted
 			</td>
@@ -552,6 +530,40 @@ lib.commit(); // commit the deletions to localStorage
 
 # Storing complex objects
 
-While the library is meant for storing fundamental types (strings, numbers, bools), it is possible to store object literals and arrays as column values, with certain caveats. Some comparison queries, distinct etc. may not work. In addition, if you retrieve a stored array in a query result and modify its values in place, these changes will persist throughout further queries until the page is refreshed. This is because localStorageDB loads and unserializes data and keeps it in memory in a global pool until the page is refreshed, and arrays and objects returned in results are passed by reference.
+While the library is meant for storing fundamental types (strings, numbers, bools), it is possible to store object literals and arrays as column values, with certain caveats. Some comparison queries, distinct etc. may not work. In addition, if you retrieve a stored array in a query result and modify its values in place, these changes will persist throughout further queries until the page is refreshed. This is because clientDB loads and unserializes data and keeps it in memory in a global pool until the page is refreshed, and arrays and objects returned in results are passed by reference.
 
 If you really need to store arrays and objects, you should implement a deep-copy function through which you pass the results before manipulation.
+
+# License
+
+MIT
+
+# Tests
+
+To run tests, use the following command:
+
+```npm run test```
+
+To run tests with coverage, use the following command:
+
+```npm run test:coverage```
+
+To run open the coverage report, use the following command:
+
+```npm run coverage:report``
+
+To open the coverage report in a browser, use the following command:  
+
+```npm run coverage:open```
+
+The coverage report will show you:
+
+Percentage of lines covered
+Percentage of functions covered
+Percentage of statements covered
+Percentage of branches covered
+The HTML report provides a detailed view of which parts of your code are covered by tests and which aren't, with color-coded highlighting:
+
+Green: Code that is covered by tests
+Red: Code that is not covered by tests
+Yellow: Branches that are partially covered

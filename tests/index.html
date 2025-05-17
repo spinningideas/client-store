@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>clientDB Test Page</title>
+</head>
+<body>
+  <h1>clientDB Test Page</h1>
+  <p>This page is used for Cypress tests to test the clientDB library.</p>
+  
+  <!-- Load the clientDB library -->
+  <script src="../dist/clientDB.js"></script>
+  
+  <script>
+    // This script is just for manual testing
+    document.addEventListener('DOMContentLoaded', () => {
+      // Example of manual testing
+      try {
+        const db = new clientDB('testManual');
+        console.log('Database created:', db.isNew());
+        
+        // Create a table
+        if (db.createTable('users', ['name', 'email', 'age'])) {
+          console.log('Table created successfully');
+          
+          // Insert data
+          const id = db.insert('users', {
+            name: 'Test User',
+            email: 'test@example.com',
+            age: 25
+          });
+          
+          console.log('Inserted user with ID:', id);
+          
+          // Commit changes
+          db.commit();
+          
+          // Query data
+          const users = db.query('users');
+          console.log('Users in database:', users);
+        }
+      } catch (error) {
+        console.error('Error testing clientDB:', error);
+      }
+    });
+  </script>
+</body>
+</html>
