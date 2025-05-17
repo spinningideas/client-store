@@ -20,12 +20,12 @@ const localStorage = new LocalStorage('./scratch');
 const clientStore = require('../dist/cjs/clientStore').default;
 
 // Create a new database
-const db = new clientStore('nodeExample', localStorage);
+const db = clientStore('nodeExample', localStorage);
 
 console.log('Creating database and table...');
 
 // Check if this is a new database
-if (db.isNew()) {
+if (db.storageExists === false) {
   console.log('Created a new database: nodeExample');
   
   // Create a table for products

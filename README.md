@@ -1,10 +1,8 @@
 # client-store
 
-A simple client side data storage library implemented using localStorage or sessionStorage depending on the desired storage engine. clientStore is a simple layer over localStorage (and sessionStorage) that provides a set of functions to store structured data like databases and tables.
+A simple client-side data storage library implemented using localStorage or sessionStorage. clientStore provides a set of functions to store structured data like a database containing tables and supporting queries and standard CRUD operations for data. It provides basic insert/update/delete/query capabilities with no dependencies. The structured data is stored as serialized JSON in localStorage or sessionStorage.
 
-It provides basic insert/update/delete/query capabilities. clientStore has no dependencies, and is not based on WebSQL. Underneath it all, the structured data is stored as serialized JSON in localStorage or sessionStorage.
-
-- Inspired by localStorageDB by Kailash Nadh (https://github.com/knadh/localStorageDB) but updated to modern javascript standards.
+- Inspired by localStorageDB by Kailash Nadh (https://github.com/knadh/localStorageDB) but updated to modern JavaScript standards and TypeScript support.
 
 # License
 
@@ -31,11 +29,11 @@ Browsers need to support "Local Storage" and "Session Storage" in order for clie
 ### Creating a database, table, and populating the table
 
 ```javascript
-// Initialise. If the storage doesn't exist, it is created
-const moviesStore = new clientStore("movies", localStorage);
+// Initialize. If the storage doesn't exist, it is created
+const moviesStore = clientStore("movies", localStorage);
 
 // Check if the storage was just created. Useful for initial storage setup
-if (moviesStore.isNew()) {
+if (moviesStore.storageExists === false) {
   // create the "movies" table
   moviesStore.createTable("movies", [
     "episodeId",
@@ -135,23 +133,28 @@ if (
 ### Querying
 
 ```javascript
-// simple select queries
-moviesStore.query("movies", {
+// Define query parameters
+const queryParams = {
   query: { releaseYear: 1980 },
-});
-moviesStore.query("movies", {
+};
+
+// Simple select queries
+const movies1980 = moviesStore.query("movies", queryParams);
+
+// Query with multiple conditions
+const specificMovie = moviesStore.query("movies", {
   query: { releaseYear: 1977, boxOffice: 775.4 },
 });
 
-// select all movies
-moviesStore.query("movies");
+// Select all movies (no query parameters)
+const allMovies = moviesStore.query("movies");
 
-// select all movies released after 1979
-moviesStore.query("movies", {
+// Select all movies released after 1979 using a filter function
+const newerMovies = moviesStore.query("movies", {
   query: (row) => {
-    // the callback function is applied to every row in the table
+    // The callback function is applied to every row in the table
     if (row.releaseYear > 1979) {
-      // if it returns true, the row is selected
+      // If it returns true, the row is selected
       return true;
     } else {
       return false;
@@ -159,19 +162,19 @@ moviesStore.query("movies", {
   },
 });
 
-// or with a more concise arrow function
-moviesStore.query("movies", {
+// Or with a more concise arrow function
+const newerMoviesAlt = moviesStore.query("movies", {
   query: (row) => row.releaseYear > 1979,
 });
 
-// select all movies with box office over 500 million
-moviesStore.query("movies", {
-  query: (row) => row.boxOffice > 500, // concise arrow function
+// Select movies with box office over 500 million, limited to 2 results
+const highGrossing = moviesStore.query("movies", {
+  query: (row) => row.boxOffice > 500,
   limit: 2,
 });
 
-// select the best movie (using the boolean field)
-moviesStore.query("movies", {
+// Select the best movie (using the boolean field)
+const bestMovie = moviesStore.query("movies", {
   query: { isBest: true },
 });
 ```
@@ -179,18 +182,22 @@ moviesStore.query("movies", {
 ### Sorting
 
 ```javascript
-// select 2 rows sorted in ascending order by boxOffice
-moviesStore.query("movies", { limit: 2, sort: [["boxOffice", "ASC"]] });
+// Select 2 rows sorted in ascending order by boxOffice
+const sortedMovies = moviesStore.query("movies", {
+  limit: 2,
+  sort: [["boxOffice", "ASC"]],
+});
 
-// select all rows first sorted in ascending order by boxOffice, and then, in descending, by releaseYear
-moviesStore.query("movies", {
+// Select all rows first sorted in ascending order by boxOffice, and then, in descending, by releaseYear
+const multiSortedMovies = moviesStore.query("movies", {
   sort: [
     ["boxOffice", "ASC"],
     ["releaseYear", "DESC"],
   ],
 });
 
-moviesStore.query("movies", {
+// Combine query, limit and sort
+const filteredSortedMovies = moviesStore.query("movies", {
   query: { releaseYear: 1980 },
   limit: 1,
   sort: [["boxOffice", "ASC"]],
@@ -200,28 +207,32 @@ moviesStore.query("movies", {
 ### Distinct records
 
 ```javascript
-moviesStore.query("movies", { distinct: ["releaseYear", "boxOffice"] });
+// Get records with distinct releaseYear and boxOffice values
+const distinctMovies = moviesStore.query("movies", {
+  distinct: ["releaseYear", "boxOffice"],
+});
 ```
 
 ### Example results from a query
 
 ```javascript
-// query results are returned as arrays of object literals
-// an "row_identifier" field with the internal auto-incremented identifier of the row is also included
-// thus, row_identifier is a reserved field name
+// Query results are returned as arrays of object literals
+// A "ROW_IDENTIFIER" field with the internal auto-incremented identifier of the row is also included
+// Thus, ROW_IDENTIFIER is a reserved field name
 
-moviesStore.query("movies", { query: { isBest: true } });
+const bestMovie = moviesStore.query("movies", { query: { isBest: true } });
+console.log(bestMovie);
 
-/* results
+/* Results:
 [
- {
-   ID: 2,
-   episodeId: "V",
-   title: "Star Wars: The Empire Strikes Back",
-   releaseYear: 1980,
-   boxOffice: 538.4,
-   isBest: true
- }
+  {
+    ROW_IDENTIFIER: "2",
+    episodeId: "V",
+    title: "Star Wars: The Empire Strikes Back",
+    releaseYear: 1980,
+    boxOffice: 538.4,
+    isBest: true
+  }
 ]
 */
 ```
@@ -229,24 +240,33 @@ moviesStore.query("movies", { query: { isBest: true } });
 ### Updating
 
 ```javascript
-// update all movies from 1977 to $800M box office
-moviesStore.update("movies", { releaseYear: 1977 }, (row) => {
-  return { boxOffice: 800.0 };
-});
-
-// or update all movies released before 1980 to $800M box office
-moviesStore.update(
+// Update all movies from 1977 to $800M box office
+const updatedCount1 = moviesStore.update(
   "movies",
-  (row) => row.releaseYear < 1980, // simplified arrow function with implicit return
-  (row) => ({ boxOffice: 800.0 }) // arrow function with implicit return of object
+  { releaseYear: 1977 },
+  (row) => {
+    return { boxOffice: 800.0 };
+  }
 );
+console.log(`Updated ${updatedCount1} records`);
+
+// Or update all movies released before 1980 to $800M box office
+const updatedCount2 = moviesStore.update(
+  "movies",
+  (row) => row.releaseYear < 1980, // Simplified arrow function with implicit return
+  (row) => ({ boxOffice: 800.0 }) // Arrow function with implicit return of object
+);
+console.log(`Updated ${updatedCount2} records`);
+
+// Don't forget to commit changes
+moviesStore.commit();
 ```
 
 ### Insert or Update conditionally
 
 ```javascript
-// if there's a movie with episodeId VI, update it, or insert it as a new row
-moviesStore.insertOrUpdate(
+// If there's a movie with episodeId VI, update it, or insert it as a new row
+const result = moviesStore.upsert(
   "movies",
   { episodeId: "VI" },
   {
@@ -258,19 +278,43 @@ moviesStore.insertOrUpdate(
   }
 );
 
+// You can also use upsertOrUpdate which is an alias for upsert
+const result2 = moviesStore.upsertOrUpdate(
+  "movies",
+  { episodeId: "VII" },
+  {
+    episodeId: "VII",
+    title: "Star Wars: The Force Awakens",
+    releaseYear: 2015,
+    boxOffice: 2068.0,
+    isBest: false,
+  }
+);
+
+// If result is null, insertion failed
+// If result is an array, it contains the ROW_IDENTIFIERs of updated rows
+console.log(result ? `Updated ${result.length} rows` : "Inserted new row");
+console.log(result2 ? `Updated ${result2.length} rows` : "Inserted new row");
+
 moviesStore.commit();
 ```
 
 ### Deleting
 
 ```javascript
-// delete all movies from 1977
-moviesStore.deleteRows("movies", { releaseYear: 1977 });
+// Delete all movies from 1977
+const deletedCount1 = moviesStore.deleteRows("movies", { releaseYear: 1977 });
+console.log(`Deleted ${deletedCount1} records`);
 
-// delete all movies published before 1980
-moviesStore.deleteRows("movies", (row) => row.releaseYear < 1980);
+// Delete all movies published before 1980
+const deletedCount2 = moviesStore.deleteRows(
+  "movies",
+  (row) => row.releaseYear < 1980
+);
+console.log(`Deleted ${deletedCount2} records`);
 
-moviesStore.commit(); // commit the deletions to localStorage
+// Commit the deletions to localStorage
+moviesStore.commit();
 ```
 
 # Methods
@@ -437,17 +481,17 @@ This package is set up to be published to npm with support for both CommonJS and
 ### ES Modules (recommended)
 
 ```javascript
-import clientStore from 'client-store';
+import clientStore from "client-store";
 
-const store = new clientStore('myDatabase');
+const store = new clientStore("myDatabase");
 ```
 
 ### CommonJS
 
 ```javascript
-const clientStore = require('client-store').default;
+const clientStore = require("client-store").default;
 
-const store = new clientStore('myDatabase');
+const store = new clientStore("myDatabase");
 ```
 
 ## Publishing to npm

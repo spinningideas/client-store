@@ -53,7 +53,7 @@ function clientStore(storeName: string, storageEngine?: Storage) {
     )
   ) {
     if (!validateName(storeName)) {
-      error("The name '" + storeName + "' contains invalid characters");
+      handleError("The name '" + storeName + "' contains invalid characters");
     } else {
       storageInstance = { tables: {}, data: {} };
       commit();
@@ -175,7 +175,7 @@ function clientStore(storeName: string, storageEngine?: Storage) {
   // check whether a table exists, and if not, throw an error
   function tableMissingThrowError(tableName: string): void {
     if (!tableExists(tableName)) {
-      error("The table '" + tableName + "' does not exist");
+      handleError("The table '" + tableName + "' does not exist");
     }
   }
 
@@ -579,7 +579,7 @@ function clientStore(storeName: string, storageEngine?: Storage) {
 
   /**
    * Insert or update rows based on a given condition.
-   * Alias to upsert.
+   * Alias to upsert. Use upsert for better clarity.
    * @param {string} tableName - The name of the table
    * @param {dataFields | updateCallbackFilter | null} query - The query to match rows
    * @param {dataFields} data - The data to insert or update
@@ -653,7 +653,7 @@ function clientStore(storeName: string, storageEngine?: Storage) {
   }
 
   // throw an error
-  function error(msg: string): never {
+  function handleError(msg: string): never {
     throw new Error(msg);
   }
 
@@ -681,7 +681,7 @@ function clientStore(storeName: string, storageEngine?: Storage) {
     for (field in data) {
       const index = storageInstance.tables[tableName].fields.indexOf(field);
       if (index === -1) {
-        error("Invalid query parameter: " + field);
+        handleError("Invalid query parameter: " + field);
       }
       newData[field] = data[field];
     }

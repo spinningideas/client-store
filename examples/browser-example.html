@@ -85,9 +85,9 @@
             clearOutput();
             try {
                 // Create a new database or open existing one
-                db = new clientStore('exampleDB', localStorage);
+                db = clientStore('exampleDB', localStorage);
                 
-                if (db.isNew()) {
+                if (db.storageExists === false) {
                     log('Created a new database: exampleDB');
                     
                     // Create a table for users
@@ -109,29 +109,23 @@
         // Add Sample Data button
         document.getElementById('addData').addEventListener('click', () => {
             clearOutput();
+            if (!db) {
+                log('Please create the database first');
+                return;
+            }
+            
             try {
-                if (!db) {
-                    throw new Error('Please create the database first');
-                }
-                
-                if (!db.tableExists('users')) {
-                    db.createTable('users', ['name', 'email', 'age', 'active']);
-                    log('Created "users" table with columns: name, email, age, active');
-                }
-                
-                // Add some sample users
+                // Insert some sample users
                 const users = [
-                    { name: 'John Doe', email: 'john@example.com', age: 32, active: true },
-                    { name: 'Jane Smith', email: 'jane@example.com', age: 28, active: true },
+                    { name: 'John Doe', email: 'john@example.com', age: 30, active: true },
+                    { name: 'Jane Smith', email: 'jane@example.com', age: 25, active: true },
                     { name: 'Bob Johnson', email: 'bob@example.com', age: 45, active: false }
                 ];
                 
                 users.forEach(user => {
                     const id = db.insert('users', user);
-                    log(`Inserted user with ID: ${id}`);
+                    log(`Inserted user: ${user.name} with ID: ${id}`);
                 });
-                
-                log(`Total users: ${db.rowCount('users')}`);
                 
                 // Commit changes to localStorage
                 db.commit();
@@ -144,40 +138,28 @@
         // Query Data button
         document.getElementById('queryData').addEventListener('click', () => {
             clearOutput();
+            if (!db) {
+                log('Please create the database first');
+                return;
+            }
+            
             try {
-                if (!db) {
-                    throw new Error('Please create the database first');
-                }
-                
-                if (!db.tableExists('users')) {
-                    throw new Error('Users table does not exist');
-                }
-                
                 // Query all users
-                const allUsers = db.query('users');
                 log('All users:');
+                const allUsers = db.query('users');
                 log(allUsers);
                 
                 // Query active users
+                log('\nActive users:');
                 const activeUsers = db.query('users', { query: { active: true } });
-                log('Active users:');
                 log(activeUsers);
                 
-                // Query users older than 30
-                const olderUsers = db.query('users', {
-                    query: function(user) {
-                        return user.age > 30;
-                    }
+                // Query users with age > 30
+                log('\nUsers older than 30:');
+                const olderUsers = db.query('users', { 
+                    query: (row) => row.age > 30 
                 });
-                log('Users older than 30:');
                 log(olderUsers);
-                
-                // Query with sorting
-                const sortedUsers = db.query('users', {
-                    sort: [['age', 'DESC']]
-                });
-                log('Users sorted by age (descending):');
-                log(sortedUsers);
             } catch (error) {
                 log(`Error: ${error.message}`);
             }
@@ -186,26 +168,25 @@
         // Update Data button
         document.getElementById('updateData').addEventListener('click', () => {
             clearOutput();
+            if (!db) {
+                log('Please create the database first');
+                return;
+            }
+            
             try {
-                if (!db) {
-                    throw new Error('Please create the database first');
-                }
-                
-                if (!db.tableExists('users')) {
-                    throw new Error('Users table does not exist');
-                }
-                
                 // Update all inactive users to active
-                const updated = db.update('users', { active: false }, function(user) {
+                const updatedCount = db.update('users', { active: false }, (row) => {
                     return { active: true };
                 });
-                log(`Updated ${updated} users from inactive to active`);
                 
-                // Update ages of all users
-                const updatedAges = db.update('users', {}, function(user) {
-                    return { age: user.age + 1 };
+                log(`Updated ${updatedCount} users from inactive to active`);
+                
+                // Update all users' ages
+                db.update('users', null, (row) => {
+                    return { age: row.age + 1 };
                 });
-                log(`Updated ages for ${updatedAges} users`);
+                
+                log('Incremented age for all users by 1');
                 
                 // Commit changes
                 db.commit();
@@ -213,7 +194,7 @@
                 
                 // Show updated data
                 const allUsers = db.query('users');
-                log('Updated users:');
+                log('\nUpdated users:');
                 log(allUsers);
             } catch (error) {
                 log(`Error: ${error.message}`);
@@ -223,29 +204,25 @@
         // Delete Data button
         document.getElementById('deleteData').addEventListener('click', () => {
             clearOutput();
+            if (!db) {
+                log('Please create the database first');
+                return;
+            }
+            
             try {
-                if (!db) {
-                    throw new Error('Please create the database first');
-                }
-                
-                if (!db.tableExists('users')) {
-                    throw new Error('Users table does not exist');
-                }
-                
                 // Delete users older than 40
-                const deleted = db.deleteRows('users', function(user) {
-                    return user.age > 40;
-                });
-                log(`Deleted ${deleted} users older than 40`);
+                const deletedCount = db.deleteRows('users', (row) => row.age > 40);
+                
+                log(`Deleted ${deletedCount} users older than 40`);
                 
                 // Commit changes
                 db.commit();
                 log('Changes committed to localStorage');
                 
                 // Show remaining data
-                const allUsers = db.query('users');
-                log('Remaining users:');
-                log(allUsers);
+                const remainingUsers = db.query('users');
+                log('\nRemaining users:');
+                log(remainingUsers);
             } catch (error) {
                 log(`Error: ${error.message}`);
             }
@@ -254,17 +231,22 @@
         // Clear Database button
         document.getElementById('clearDb').addEventListener('click', () => {
             clearOutput();
+            if (!db) {
+                log('Please create the database first');
+                return;
+            }
+            
             try {
-                if (!db) {
-                    throw new Error('Please create the database first');
-                }
-                
                 // Drop the database
                 db.drop();
                 log('Database dropped successfully');
                 
-                // Reset the db variable
-                db = null;
+                // Reinitialize
+                db = clientStore('exampleDB', localStorage);
+                
+                if (db.storageExists === false) {
+                    log('Database is now empty');
+                }
             } catch (error) {
                 log(`Error: ${error.message}`);
             }
