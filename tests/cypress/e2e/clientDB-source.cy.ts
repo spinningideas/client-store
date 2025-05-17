@@ -1,10 +1,10 @@
 /// <reference types="cypress" />
-/// <reference path="../support/clientDB.d.ts" />
+/// <reference path="../support/clientStore.d.ts" />
 
-// Import the clientDB source directly
-import clientDB from "../../../src/clientDB";
+// Import the clientStore source directly
+import clientStore from "../../../src/clientStore";
 
-describe("clientDB Source Implementation", () => {
+describe("clientStore Source Implementation", () => {
   beforeEach(() => {
     // Clear localStorage before each test
     cy.clearLocalStorage();
@@ -12,7 +12,7 @@ describe("clientDB Source Implementation", () => {
 
   it("should create a new database with the source implementation", () => {
     // Create a new database
-    const db = new clientDB("testSourceDB");
+    const db = new clientStore("testSourceDB");
 
     // Check if the database was created
     expect(db.isNew()).to.be.true;
@@ -20,7 +20,7 @@ describe("clientDB Source Implementation", () => {
 
   it("should create a table and insert data with camelCase parameters", () => {
     // Create a new database
-    const db = new clientDB("testSourceDB");
+    const db = new clientStore("testSourceDB");
 
     // Create a table with camelCase parameter
     expect(db.createTable("usersTable", ["name", "email", "age"])).to.be.true;
@@ -48,7 +48,7 @@ describe("clientDB Source Implementation", () => {
 
   it("should update data with camelCase parameters", () => {
     // Create a new database
-    const db = new clientDB("testSourceDB");
+    const db = new clientStore("testSourceDB");
 
     // Create a table with camelCase parameter
     db.createTable("usersTable", ["name", "email", "age"]);
@@ -77,7 +77,7 @@ describe("clientDB Source Implementation", () => {
 
   it("should delete data with camelCase parameters", () => {
     // Create a new database
-    const db = new clientDB("testSourceDB");
+    const db = new clientStore("testSourceDB");
 
     // Create a table with camelCase parameter
     db.createTable("usersTable", ["name", "email", "age"]);
@@ -105,7 +105,7 @@ describe("clientDB Source Implementation", () => {
 
   it("should test alterTable with camelCase parameters", () => {
     // Create a new database
-    const db = new clientDB("testSourceDB");
+    const db = new clientStore("testSourceDB");
 
     // Create a table with camelCase parameter
     db.createTable("usersTable", ["name", "email"]);
@@ -135,7 +135,7 @@ describe("clientDB Source Implementation", () => {
 
   it("should test queryAll with camelCase parameters", () => {
     // Create a new database
-    const db = new clientDB("testSourceDB");
+    const db = new clientStore("testSourceDB");
 
     // Create a table with camelCase parameter
     db.createTable("usersTable", ["name", "email", "age"]);
@@ -169,7 +169,7 @@ describe("clientDB Source Implementation", () => {
 
   it("should test insertOrUpdate with camelCase parameters", () => {
     // Create a new database
-    const db = new clientDB("testSourceDB");
+    const db = new clientStore("testSourceDB");
 
     // Create a table with camelCase parameter
     db.createTable("usersTable", ["name", "email", "age"]);

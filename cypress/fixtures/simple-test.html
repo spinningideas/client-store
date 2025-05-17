@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ClientDB Parameter Tests</title>
+  <title>clientStore Parameter Tests</title>
   <script>
-    // Mock implementation of clientDB for testing parameters
-    class ClientDB {
+    // Mock implementation of clientStore for testing parameters
+    class clientStore {
       constructor(dbName, storageEngine) {
         this.dbName = dbName;
         this.storage = storageEngine || window.localStorage;
@@ -96,10 +96,10 @@
       }
     }
     
-    window.clientDB = ClientDB;
+    window.clientStore = clientStore;
   </script>
 </head>
 <body>
-  <h1>ClientDB Parameter Tests</h1>
+  <h1>clientStore Parameter Tests</h1>
 </body>
 </html>

@@ -1,20 +1,20 @@
 /// <reference types="cypress" />
-/// <reference path="../support/clientDB.d.ts" />
+/// <reference path="../support/clientStore.d.ts" />
 
-describe('clientDB Parameter Tests', () => {
+describe('clientStore Parameter Tests', () => {
   beforeEach(() => {
     // Clear localStorage before each test
     cy.clearLocalStorage();
     
-    // Create a simple HTML file with a mock clientDB implementation
+    // Create a simple HTML file with a mock clientStore implementation
     cy.writeFile('cypress/fixtures/params-test.html', `
       <!DOCTYPE html>
       <html>
       <head>
-        <title>ClientDB Parameter Tests</title>
+        <title>clientStore Parameter Tests</title>
         <script>
-          // Mock implementation of clientDB for testing parameters
-          class ClientDB {
+          // Mock implementation of clientStore for testing parameters
+          class clientStore {
             constructor(dbName, storageEngine) {
               this.dbName = dbName;
               this.storage = storageEngine || window.localStorage;
@@ -100,11 +100,11 @@ describe('clientDB Parameter Tests', () => {
             }
           }
           
-          window.clientDB = ClientDB;
+          window.clientStore = clientStore;
         </script>
       </head>
       <body>
-        <h1>ClientDB Parameter Tests</h1>
+        <h1>clientStore Parameter Tests</h1>
       </body>
       </html>
     `);
@@ -116,7 +116,7 @@ describe('clientDB Parameter Tests', () => {
   it('should use camelCase parameters in createTable', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testDB');
+      const db = new win.clientStore('testDB');
       
       // Call the method with camelCase parameter
       db.createTable('usersTable', ['name', 'email']);
@@ -133,7 +133,7 @@ describe('clientDB Parameter Tests', () => {
   it('should use camelCase parameters in insert', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testDB');
+      const db = new win.clientStore('testDB');
       
       // Create a table
       db.createTable('usersTable', ['name', 'email']);
@@ -153,7 +153,7 @@ describe('clientDB Parameter Tests', () => {
   it('should use camelCase parameters in update', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testDB');
+      const db = new win.clientStore('testDB');
       
       // Create a table
       db.createTable('usersTable', ['name', 'email']);
@@ -175,7 +175,7 @@ describe('clientDB Parameter Tests', () => {
   it('should use camelCase parameters in deleteRows', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testDB');
+      const db = new win.clientStore('testDB');
       
       // Create a table
       db.createTable('usersTable', ['name', 'email']);
@@ -195,7 +195,7 @@ describe('clientDB Parameter Tests', () => {
   it('should use camelCase parameters in alterTable', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testDB');
+      const db = new win.clientStore('testDB');
       
       // Create a table
       db.createTable('usersTable', ['name', 'email']);
@@ -216,7 +216,7 @@ describe('clientDB Parameter Tests', () => {
   it('should use camelCase parameters in queryAll', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testDB');
+      const db = new win.clientStore('testDB');
       
       // Create a table
       db.createTable('usersTable', ['name', 'email']);
@@ -236,7 +236,7 @@ describe('clientDB Parameter Tests', () => {
   it('should use camelCase parameters in insertOrUpdate', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testDB');
+      const db = new win.clientStore('testDB');
       
       // Create a table
       db.createTable('usersTable', ['name', 'email']);
@@ -256,7 +256,7 @@ describe('clientDB Parameter Tests', () => {
   it('should use camelCase parameters in query', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testDB');
+      const db = new win.clientStore('testDB');
       
       // Create a table
       db.createTable('usersTable', ['name', 'email']);

@@ -8,8 +8,8 @@
 // https://on.cypress.io/custom-commands
 // ***********************************************
 
-// Import the clientDB type definitions
-/// <reference path="./clientDB.d.ts" />
+// Import the clientStore type definitions
+/// <reference path="./clientStore.d.ts" />
 
 export {}; // Make this file a module
 
@@ -18,13 +18,13 @@ declare global {
   namespace Cypress {
     interface Chainable {
       // Add custom commands here
-      // Example: createClientDB(name: string): Chainable<Element>
+      // Example: createclientStore(name: string): Chainable<Element>
     }
   }
 }
 
 // -- This is a parent command --
-// Cypress.Commands.add('createClientDB', (name) => { ... })
+// Cypress.Commands.add('createclientStore', (name) => { ... })
 
 // -- This is a child command --
 // Cypress.Commands.add('drag', { prevSubject: 'element'}, (subject, options) => { ... })

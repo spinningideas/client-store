@@ -1,23 +1,23 @@
 /// <reference types="cypress" />
-/// <reference path="../support/clientDB.d.ts" />
+/// <reference path="../support/clientStore.d.ts" />
 
-describe('clientDB', () => {
+describe('clientStore', () => {
   beforeEach(() => {
     // Clear localStorage before each test
     cy.clearLocalStorage();
     
-    // Create a simple HTML file with the clientDB script
+    // Create a simple HTML file with the clientStore script
     cy.writeFile('cypress/fixtures/test.html', `
       <!DOCTYPE html>
       <html>
       <head>
-        <title>ClientDB Test</title>
+        <title>clientStore Test</title>
         <script>
           // For code coverage instrumentation
           window.__coverage__ = window.__coverage__ || {};
           
-          // Mock implementation of clientDB for testing
-          class ClientDB {
+          // Mock implementation of clientStore for testing
+          class clientStore {
             constructor(dbName, storageEngine) {
               this.dbName = dbName;
               this.storage = storageEngine || window.localStorage;
@@ -93,11 +93,11 @@ describe('clientDB', () => {
             }
           }
           
-          window.clientDB = ClientDB;
+          window.clientStore = clientStore;
         </script>
       </head>
       <body>
-        <h1>ClientDB Test Page</h1>
+        <h1>clientStore Test Page</h1>
       </body>
       </html>
     `);
@@ -109,7 +109,7 @@ describe('clientDB', () => {
   it('should create a new database', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testDB');
+      const db = new win.clientStore('testDB');
       
       // Check if the database was created
       expect(db.isNew()).to.be.true;
@@ -119,7 +119,7 @@ describe('clientDB', () => {
   it('should create a table and insert data', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testDB');
+      const db = new win.clientStore('testDB');
       
       // Create a table
       expect(db.createTable('users', ['name', 'email', 'age'])).to.be.true;
@@ -149,7 +149,7 @@ describe('clientDB', () => {
   it('should update data', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testDB');
+      const db = new win.clientStore('testDB');
       
       // Create a table
       db.createTable('users', ['name', 'email', 'age']);
@@ -180,7 +180,7 @@ describe('clientDB', () => {
   it('should delete data', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testDB');
+      const db = new win.clientStore('testDB');
       
       // Create a table
       db.createTable('users', ['name', 'email', 'age']);
@@ -211,17 +211,17 @@ describe('clientDB', () => {
   it('should work with camelCase parameters', () => {
     cy.window().then((win) => {
       // Extend our mock implementation to log parameter names
-      const originalCreateTable = win.clientDB.prototype.createTable;
+      const originalCreateTable = win.clientStore.prototype.createTable;
       const parameterSpy = cy.spy().as('parameterSpy');
       
-      win.clientDB.prototype.createTable = function(tableName, fields) {
+      win.clientStore.prototype.createTable = function(tableName, fields) {
         // Log the parameter name to verify it's camelCase
         parameterSpy(tableName);
         return originalCreateTable.call(this, tableName, fields);
       };
       
       // Create a new database
-      const db = new win.clientDB('testDB');
+      const db = new win.clientStore('testDB');
       
       // Call the method with camelCase parameter
       db.createTable('usersTable', ['name', 'email']);

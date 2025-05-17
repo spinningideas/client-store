@@ -1,30 +1,30 @@
-// Type definitions for clientDB
-interface ClientDBFields {
+// Type definitions for clientStore
+interface clientStoreFields {
   row_identifier: string;
   [key: string]: any;
 }
 
-interface ClientDBDynamicFields {
+interface clientStoreDynamicFields {
   [key: string]: any;
 }
 
-interface ClientDBCallback {
-  (object: ClientDBFields): ClientDBDynamicFields;
+interface clientStoreCallback {
+  (object: clientStoreFields): clientStoreDynamicFields;
 }
 
-interface ClientDBCallbackFilter {
-  (object: ClientDBFields): boolean;
+interface clientStoreCallbackFilter {
+  (object: clientStoreFields): boolean;
 }
 
-interface ClientDBQueryParams {
-  query?: ClientDBDynamicFields | ClientDBCallbackFilter | null;
+interface clientStoreQueryParams {
+  query?: clientStoreDynamicFields | clientStoreCallbackFilter | null;
   limit?: number;
   start?: number;
   sort?: any[];
   distinct?: string[];
 }
 
-interface ClientDB {
+interface clientStore {
   isNew(): boolean;
   drop(): void;
   getItem(key: string): string | null;
@@ -40,7 +40,7 @@ interface ClientDB {
   alterTable(
     tableName: string,
     newFields: string[] | string,
-    defaultValues?: ClientDBDynamicFields | string
+    defaultValues?: clientStoreDynamicFields | string
   ): boolean;
   dropTable(tableName: string): void;
   truncate(tableName: string): void;
@@ -49,39 +49,39 @@ interface ClientDB {
   insert(tableName: string, data: { [T: string]: any }): string | null;
   query(
     tableName: string,
-    query?: ClientDBDynamicFields | ClientDBCallbackFilter | null,
+    query?: clientStoreDynamicFields | clientStoreCallbackFilter | null,
     limit?: number,
     start?: number,
     sort?: any[],
     distinct?: string[]
-  ): ClientDBFields[];
+  ): clientStoreFields[];
   query(
     tableName: string,
-    params: ClientDBQueryParams
-  ): ClientDBFields[];
+    params: clientStoreQueryParams
+  ): clientStoreFields[];
   update(
     tableName: string,
-    query: ClientDBDynamicFields | ClientDBCallbackFilter | null,
-    updateFunction: ClientDBCallback
+    query: clientStoreDynamicFields | clientStoreCallbackFilter | null,
+    updateFunction: clientStoreCallback
   ): number;
   insertOrUpdate(
     tableName: string,
-    query: ClientDBDynamicFields | ClientDBCallbackFilter | null,
-    data: ClientDBDynamicFields
+    query: clientStoreDynamicFields | clientStoreCallbackFilter | null,
+    data: clientStoreDynamicFields
   ): string[] | null;
   deleteRows(
     tableName: string,
-    query?: ClientDBDynamicFields | ClientDBCallbackFilter | null
+    query?: clientStoreDynamicFields | clientStoreCallbackFilter | null
   ): number;
 }
 
-// Extend Window interface to include clientDB
+// Extend Window interface to include clientStore
 export {}; // Make this file a module
 
 declare global {
   interface Window {
-    clientDB: {
-      new(dbName: string, storageEngine?: Storage): ClientDB;
+    clientStore: {
+      new(dbName: string, storageEngine?: Storage): clientStore;
     };
   }
 }

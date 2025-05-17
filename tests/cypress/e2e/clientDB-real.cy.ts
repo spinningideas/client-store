@@ -1,22 +1,22 @@
 /// <reference types="cypress" />
-/// <reference path="../support/clientDB.d.ts" />
+/// <reference path="../support/clientStore.d.ts" />
 
-describe('clientDB Real Implementation', () => {
+describe('clientStore Real Implementation', () => {
   beforeEach(() => {
     // Clear localStorage before each test
     cy.clearLocalStorage();
     
-    // Create a test HTML file that loads the actual clientDB implementation
+    // Create a test HTML file that loads the actual clientStore implementation
     cy.writeFile('cypress/fixtures/real-test.html', `
       <!DOCTYPE html>
       <html>
       <head>
-        <title>ClientDB Real Implementation Test</title>
-        <!-- Load the actual clientDB implementation -->
-        <script src="/dist/clientDB.js"></script>
+        <title>clientStore Real Implementation Test</title>
+        <!-- Load the actual clientStore implementation -->
+        <script src="/dist/clientStore.js"></script>
       </head>
       <body>
-        <h1>ClientDB Real Implementation Test</h1>
+        <h1>clientStore Real Implementation Test</h1>
       </body>
       </html>
     `);
@@ -27,11 +27,11 @@ describe('clientDB Real Implementation', () => {
 
   it('should create a new database with the real implementation', () => {
     cy.window().then((win) => {
-      // Verify clientDB is loaded
-      expect(win.clientDB).to.exist;
+      // Verify clientStore is loaded
+      expect(win.clientStore).to.exist;
       
       // Create a new database
-      const db = new win.clientDB('testRealDB');
+      const db = new win.clientStore('testRealDB');
       
       // Check if the database was created
       expect(db.isNew()).to.be.true;
@@ -41,7 +41,7 @@ describe('clientDB Real Implementation', () => {
   it('should create a table and insert data with camelCase parameters', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testRealDB');
+      const db = new win.clientStore('testRealDB');
       
       // Create a table with camelCase parameter
       expect(db.createTable('usersTable', ['name', 'email', 'age'])).to.be.true;
@@ -71,7 +71,7 @@ describe('clientDB Real Implementation', () => {
   it('should update data with camelCase parameters', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testRealDB');
+      const db = new win.clientStore('testRealDB');
       
       // Create a table with camelCase parameter
       db.createTable('usersTable', ['name', 'email', 'age']);
@@ -102,7 +102,7 @@ describe('clientDB Real Implementation', () => {
   it('should delete data with camelCase parameters', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testRealDB');
+      const db = new win.clientStore('testRealDB');
       
       // Create a table with camelCase parameter
       db.createTable('usersTable', ['name', 'email', 'age']);
@@ -132,7 +132,7 @@ describe('clientDB Real Implementation', () => {
   it('should test alterTable with camelCase parameters', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testRealDB');
+      const db = new win.clientStore('testRealDB');
       
       // Create a table with camelCase parameter
       db.createTable('usersTable', ['name', 'email']);
@@ -162,7 +162,7 @@ describe('clientDB Real Implementation', () => {
   it('should test queryAll with camelCase parameters', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testRealDB');
+      const db = new win.clientStore('testRealDB');
       
       // Create a table with camelCase parameter
       db.createTable('usersTable', ['name', 'email', 'age']);
@@ -198,7 +198,7 @@ describe('clientDB Real Implementation', () => {
   it('should test insertOrUpdate with camelCase parameters', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientDB('testRealDB');
+      const db = new win.clientStore('testRealDB');
       
       // Create a table with camelCase parameter
       db.createTable('usersTable', ['name', 'email', 'age']);

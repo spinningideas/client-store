@@ -1,11 +1,10 @@
-# client-db
+# client-store
 
-A simple client side database library implemented using localStorage or sessionStorage depending on the desired storage engine. clientDB is a simple layer over localStorage (and sessionStorage) that provides a set of functions to store structured data like databases and tables.
+A simple client side data storage library implemented using localStorage or sessionStorage depending on the desired storage engine. clientStore is a simple layer over localStorage (and sessionStorage) that provides a set of functions to store structured data like databases and tables.
 
-It provides basic insert/update/delete/query capabilities.
-clientDB has no dependencies, and is not based on WebSQL. Underneath it all, the structured data is stored as serialized JSON in localStorage or sessionStorage.
+It provides basic insert/update/delete/query capabilities. clientStore has no dependencies, and is not based on WebSQL. Underneath it all, the structured data is stored as serialized JSON in localStorage or sessionStorage.
 
-- Inspired by localStorageDB by Kailash Nadh (https://github.com/knadh/localStorageDB)
+- Inspired by localStorageDB by Kailash Nadh (https://github.com/knadh/localStorageDB) but updated to modern javascript standards.
 
 # License
 
@@ -15,7 +14,7 @@ clientDB has no dependencies, and is not based on WebSQL. Underneath it all, the
 
 ## NPM
 
-`npm install clientDB`
+`npm install client-store`
 
 # Run Tests
 
@@ -25,20 +24,20 @@ See testing section below in the README for more information on running tests.
 
 # Supported Browsers
 
-Browsers need to support "Local Storage" in order for clientDB to function.
+Browsers need to support "Local Storage" and "Session Storage" in order for clientStore to function.
 
 # Usage / Examples
 
 ### Creating a database, table, and populating the table
 
 ```javascript
-// Initialise. If the database doesn't exist, it is created
-const moviesDB = new clientDB("movies", localStorage);
+// Initialise. If the storage doesn't exist, it is created
+const moviesStore = new clientStore("movies", localStorage);
 
-// Check if the database was just created. Useful for initial database setup
-if (moviesDB.isNew()) {
+// Check if the storage was just created. Useful for initial storage setup
+if (moviesStore.isNew()) {
   // create the "movies" table
-  moviesDB.createTable("movies", [
+  moviesStore.createTable("movies", [
     "episodeId",
     "title",
     "releaseYear",
@@ -47,21 +46,21 @@ if (moviesDB.isNew()) {
   ]);
 
   // insert some data
-  moviesDB.insert("movies", {
+  moviesStore.insert("movies", {
     episodeId: "IV",
     title: "Star Wars: A New Hope",
     releaseYear: 1977,
     boxOffice: 775.4, // box office in millions of dollars
     isBest: false,
   });
-  moviesDB.insert("movies", {
+  moviesStore.insert("movies", {
     episodeId: "V",
     title: "Star Wars: The Empire Strikes Back",
     releaseYear: 1980,
     boxOffice: 538.4, // box office in millions of dollars
     isBest: true, // The Empire Strikes Back is considered the best
   });
-  moviesDB.insert("movies", {
+  moviesStore.insert("movies", {
     episodeId: "VI",
     title: "Star Wars: Return of the Jedi",
     releaseYear: 1983,
@@ -69,9 +68,9 @@ if (moviesDB.isNew()) {
     isBest: false,
   });
 
-  // commit the database to localStorage
+  // save the data to localStorage
   // all create/drop/insert/update/delete operations should be committed
-  moviesDB.commit();
+  moviesStore.commit();
 }
 ```
 
@@ -104,32 +103,32 @@ const rows = [
 ];
 
 // create the table and insert records in one go
-moviesDB.createTableWithData("movies", rows);
+moviesStore.createTableWithData("movies", rows);
 
-moviesDB.commit();
+moviesStore.commit();
 ```
 
 ### Altering
 
 ```javascript
 // If database already exists, and want to alter existing tables
-if (!moviesDB.columnExists("movies", "runTime")) {
-  moviesDB.alterTable("movies", "runTime", 121);
-  moviesDB.commit(); // commit the deletions to localStorage
+if (!moviesStore.columnExists("movies", "runTime")) {
+  moviesStore.alterTable("movies", "runTime", 121);
+  moviesStore.commit(); // commit the deletions to localStorage
 }
 
 // Multiple columns can also added at once
 if (
   !(
-    moviesDB.columnExists("movies", "runTime") &&
-    moviesDB.columnExists("movies", "rating")
+    moviesStore.columnExists("movies", "runTime") &&
+    moviesStore.columnExists("movies", "rating")
   )
 ) {
-  moviesDB.alterTable("movies", ["runTime", "rating"], {
+  moviesStore.alterTable("movies", ["runTime", "rating"], {
     runTime: 121,
     rating: "PG",
   });
-  moviesDB.commit(); // commit the deletions to localStorage
+  moviesStore.commit(); // commit the deletions to localStorage
 }
 ```
 
@@ -137,18 +136,18 @@ if (
 
 ```javascript
 // simple select queries
-moviesDB.query("movies", {
+moviesStore.query("movies", {
   query: { releaseYear: 1980 },
 });
-moviesDB.query("movies", {
+moviesStore.query("movies", {
   query: { releaseYear: 1977, boxOffice: 775.4 },
 });
 
 // select all movies
-moviesDB.query("movies");
+moviesStore.query("movies");
 
 // select all movies released after 1979
-moviesDB.query("movies", {
+moviesStore.query("movies", {
   query: (row) => {
     // the callback function is applied to every row in the table
     if (row.releaseYear > 1979) {
@@ -161,18 +160,18 @@ moviesDB.query("movies", {
 });
 
 // or with a more concise arrow function
-moviesDB.query("movies", {
+moviesStore.query("movies", {
   query: (row) => row.releaseYear > 1979,
 });
 
 // select all movies with box office over 500 million
-moviesDB.query("movies", {
+moviesStore.query("movies", {
   query: (row) => row.boxOffice > 500, // concise arrow function
   limit: 2,
 });
 
 // select the best movie (using the boolean field)
-moviesDB.query("movies", {
+moviesStore.query("movies", {
   query: { isBest: true },
 });
 ```
@@ -181,17 +180,17 @@ moviesDB.query("movies", {
 
 ```javascript
 // select 2 rows sorted in ascending order by boxOffice
-moviesDB.query("movies", { limit: 2, sort: [["boxOffice", "ASC"]] });
+moviesStore.query("movies", { limit: 2, sort: [["boxOffice", "ASC"]] });
 
 // select all rows first sorted in ascending order by boxOffice, and then, in descending, by releaseYear
-moviesDB.query("movies", {
+moviesStore.query("movies", {
   sort: [
     ["boxOffice", "ASC"],
     ["releaseYear", "DESC"],
   ],
 });
 
-moviesDB.query("movies", {
+moviesStore.query("movies", {
   query: { releaseYear: 1980 },
   limit: 1,
   sort: [["boxOffice", "ASC"]],
@@ -201,7 +200,7 @@ moviesDB.query("movies", {
 ### Distinct records
 
 ```javascript
-moviesDB.query("movies", { distinct: ["releaseYear", "boxOffice"] });
+moviesStore.query("movies", { distinct: ["releaseYear", "boxOffice"] });
 ```
 
 ### Example results from a query
@@ -211,7 +210,7 @@ moviesDB.query("movies", { distinct: ["releaseYear", "boxOffice"] });
 // an "row_identifier" field with the internal auto-incremented identifier of the row is also included
 // thus, row_identifier is a reserved field name
 
-moviesDB.query("movies", { query: { isBest: true } });
+moviesStore.query("movies", { query: { isBest: true } });
 
 /* results
 [
@@ -231,12 +230,12 @@ moviesDB.query("movies", { query: { isBest: true } });
 
 ```javascript
 // update all movies from 1977 to $800M box office
-moviesDB.update("movies", { releaseYear: 1977 }, (row) => {
+moviesStore.update("movies", { releaseYear: 1977 }, (row) => {
   return { boxOffice: 800.0 };
 });
 
 // or update all movies released before 1980 to $800M box office
-moviesDB.update(
+moviesStore.update(
   "movies",
   (row) => row.releaseYear < 1980, // simplified arrow function with implicit return
   (row) => ({ boxOffice: 800.0 }) // arrow function with implicit return of object
@@ -247,7 +246,7 @@ moviesDB.update(
 
 ```javascript
 // if there's a movie with episodeId VI, update it, or insert it as a new row
-moviesDB.insertOrUpdate(
+moviesStore.insertOrUpdate(
   "movies",
   { episodeId: "VI" },
   {
@@ -259,19 +258,19 @@ moviesDB.insertOrUpdate(
   }
 );
 
-moviesDB.commit();
+moviesStore.commit();
 ```
 
 ### Deleting
 
 ```javascript
 // delete all movies from 1977
-moviesDB.deleteRows("movies", { releaseYear: 1977 });
+moviesStore.deleteRows("movies", { releaseYear: 1977 });
 
 // delete all movies published before 1980
-moviesDB.deleteRows("movies", (row) => row.releaseYear < 1980);
+moviesStore.deleteRows("movies", (row) => row.releaseYear < 1980);
 
-moviesDB.commit(); // commit the deletions to localStorage
+moviesStore.commit(); // commit the deletions to localStorage
 ```
 
 # Methods
@@ -286,7 +285,7 @@ moviesDB.commit(); // commit the deletions to localStorage
 	</thead>
 	<tbody>
 		<tr>
-			<td>clientDB()</td>
+			<td>clientStore()</td>
 			<td>databaseName, storageEngine</td>
 			<td>Constructor<br />
 				- storageEngine can either be an instance of localStorage (default) or sessionStorage from window object
@@ -420,15 +419,60 @@ moviesDB.commit(); // commit the deletions to localStorage
 
 # Storing complex objects
 
-While the library is meant for storing fundamental types (strings, numbers, bools), it is possible to store object literals and arrays as column values, with certain caveats. Some comparison queries, distinct etc. may not work. In addition, if you retrieve a stored array in a query result and modify its values in place, these changes will persist throughout further queries until the page is refreshed. This is because clientDB loads and unserializes data and keeps it in memory in a global pool until the page is refreshed, and arrays and objects returned in results are passed by reference.
+While the library is meant for storing fundamental types (strings, numbers, bools), it is possible to store object literals and arrays as column values, with certain caveats. Some comparison queries, distinct etc. may not work. In addition, if you retrieve a stored array in a query result and modify its values in place, these changes will persist throughout further queries until the page is refreshed. This is because clientStore loads and unserializes data and keeps it in memory in a global pool until the page is refreshed, and arrays and objects returned in results are passed by reference.
 
 If you really need to store arrays and objects, you should implement a deep-copy function through which you pass the results before manipulation.
+
+# Package Publishing
+
+This package is set up to be published to npm with support for both CommonJS and ES Modules. The package includes the following features:
+
+- CommonJS build for Node.js and legacy environments
+- ES Modules build for modern bundlers and environments
+- TypeScript declaration files
+- Tree-shakable exports
+
+## Using the Package
+
+### ES Modules (recommended)
+
+```javascript
+import clientStore from 'client-store';
+
+const store = new clientStore('myDatabase');
+```
+
+### CommonJS
+
+```javascript
+const clientStore = require('client-store').default;
+
+const store = new clientStore('myDatabase');
+```
+
+## Publishing to npm
+
+To publish a new version of the package to npm:
+
+1. Update the version in `package.json`
+2. Run tests to ensure everything is working correctly: `npm test`
+3. Build the package: `npm run build`
+4. Publish to npm: `npm publish`
+
+Alternatively, you can use npm version commands which will handle versioning and tagging:
+
+```bash
+npm version patch  # for bug fixes
+npm version minor  # for new features
+npm version major  # for breaking changes
+npm publish
+```
 
 # Feature Roadmap
 
 1. Implement support to store arrays and objects as column values.
 2. Implement support for storing JSON objects as column values.
-3. Add more comprehensive tests to check other aspects of the clientDB functionality
+3. Add more comprehensive tests to check other aspects of the clientStore functionality
 4. Set up code coverage reporting to see how well the tests are covering the codebase
 5. Create a GitHub Actions workflow to automatically run these tests on pull requests
 6. Document the testing approach in the project README

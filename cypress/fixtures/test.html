@@ -2,10 +2,10 @@
       <!DOCTYPE html>
       <html>
       <head>
-        <title>ClientDB Test</title>
+        <title>clientStore Test</title>
         <script>
-          // Mock implementation of clientDB for testing
-          class ClientDB {
+          // Mock implementation of clientStore for testing
+          class clientStore {
             constructor(dbName, storageEngine) {
               this.dbName = dbName;
               this.storage = storageEngine || window.localStorage;
@@ -81,11 +81,11 @@
             }
           }
           
-          window.clientDB = ClientDB;
+          window.clientStore = clientStore;
         </script>
       </head>
       <body>
-        <h1>ClientDB Test Page</h1>
+        <h1>clientStore Test Page</h1>
       </body>
       </html>
     
