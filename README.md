@@ -502,10 +502,10 @@ lib.commit(); // commit the deletions to localStorage
 		</tr>
 		<tr>
 			<td>update()</td>
-			<td>tableName, query, update_function</td>
+			<td>tableName, query, updateFunction</td>
 			<td>Updates existing records in a table matching query, and returns the number of rows affected<br />
 				- query is an object literal or a function. If query is not supplied, all rows are updated<br />
-				- update_function is a function that returns an object literal with the updated values
+				- updateFunction is a function that returns an object literal with the updated values
 			</td>
 		</tr>
 			<tr>
@@ -550,7 +550,7 @@ To run tests with coverage, use the following command:
 
 To run open the coverage report, use the following command:
 
-```npm run coverage:report``
+```npm run coverage:report```
 
 To open the coverage report in a browser, use the following command:  
 

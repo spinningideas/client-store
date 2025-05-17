@@ -17,7 +17,10 @@ interface dynamicFields {
   [T: string]: any;
 }
 
-/** Fields that are static and have fixed types */
+/** Full set of static fields that comprise a given table definition
+ * The ROW_IDENTIFIER field is used to identify a row in the database.
+ * The other fields are the fields that comprise a given table definition.
+ */
 interface staticFields extends dynamicFields {
   ROW_IDENTIFIER: string;
 }
@@ -76,7 +79,7 @@ declare class clientDB {
 	 - distinct is an array of fields whose values have to be unique in the returned rows
 	 Every returned row will have it's internal auto-incremented row identifier assigned to the variable ROW_IDENTIFIER
 	 */
-  queryAll(tableName: string, params: queryParams): staticFields[];
+  queryAll(tableName: string, params?: queryParams): staticFields[];
   /*
 	 Returns an array of rows (object literals) from a table matching the query.
 	 - query is either an object literal or null. If query is not supplied, all rows are returned
@@ -99,7 +102,7 @@ declare class clientDB {
   insertOrUpdate(
     tableName: string,
     query: dynamicFields | updateCallbackFilter,
-    data: staticFields
+    data: dynamicFields
   ): number;
   /*
 	 Inserts a row into a table if the given query matches no results, or updates the rows matching the query.

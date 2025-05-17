@@ -11,8 +11,12 @@ const server = http.createServer((req, res) => {
     // Serve the test page
     filePath = path.join(__dirname, 'index.html');
     serveFile(filePath, 'text/html', res);
+  } else if (req.url.startsWith('/dist/') && req.url.endsWith('.js')) {
+    // Serve the actual clientDB.js file
+    filePath = path.join(__dirname, '..', req.url);
+    serveFile(filePath, 'application/javascript', res);
   } else if (req.url.endsWith('.js')) {
-    // Serve JavaScript files
+    // Serve other JavaScript files
     filePath = path.join(__dirname, '..', req.url);
     serveFile(filePath, 'application/javascript', res);
   } else {
