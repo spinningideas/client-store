@@ -38,65 +38,27 @@ var lib = new clientDB("library", localStorage);
 
 // Check if the database was just created. Useful for initial database setup
 if (lib.isNew()) {
-  // create the "books" table
-  lib.createTable("books", ["code", "title", "author", "year", "copies"]);
+  // create the "movies" table
+  lib.createTable("movies", ["episodeId", "title", "releaseYear", "boxOffice"]);
 
   // insert some data
-  lib.insert("books", {
-    code: "B001",
-    title: "Phantoms in the brain",
-    author: "Ramachandran",
-    year: 1999,
-    copies: 10,
+  lib.insert("movies", {
+    episodeId: "IV",
+    title: "Star Wars: A New Hope",
+    releaseYear: 1977,
+    boxOffice: 775.4, // box office in millions of dollars
   });
-  lib.insert("books", {
-    code: "B002",
-    title: "The tell-tale brain",
-    author: "Ramachandran",
-    year: 2011,
-    copies: 10,
+  lib.insert("movies", {
+    episodeId: "V",
+    title: "Star Wars: The Empire Strikes Back",
+    releaseYear: 1980,
+    boxOffice: 538.4, // box office in millions of dollars
   });
-  lib.insert("books", {
-    code: "B003",
-    title: "Freakonomics",
-    author: "Levitt and Dubner",
-    year: 2005,
-    copies: 10,
-  });
-  lib.insert("books", {
-    code: "B004",
-    title: "Predictably irrational",
-    author: "Ariely",
-    year: 2008,
-    copies: 10,
-  });
-  lib.insert("books", {
-    code: "B005",
-    title: "Tesla: Man out of time",
-    author: "Cheney",
-    year: 2001,
-    copies: 10,
-  });
-  lib.insert("books", {
-    code: "B006",
-    title: "Salmon fishing in the Yemen",
-    author: "Torday",
-    year: 2007,
-    copies: 10,
-  });
-  lib.insert("books", {
-    code: "B007",
-    title: "The user illusion",
-    author: "Norretranders",
-    year: 1999,
-    copies: 10,
-  });
-  lib.insert("books", {
-    code: "B008",
-    title: "Hubble: Window of the universe",
-    author: "Sparrow",
-    year: 2010,
-    copies: 10,
+  lib.insert("movies", {
+    episodeId: "VI",
+    title: "Star Wars: Return of the Jedi",
+    releaseYear: 1983,
+    boxOffice: 475.1, // box office in millions of dollars
   });
 
   // commit the database to localStorage
@@ -111,65 +73,27 @@ if (lib.isNew()) {
 // rows for pre-population
 var rows = [
   {
-    code: "B001",
-    title: "Phantoms in the brain",
-    author: "Ramachandran",
-    year: 1999,
-    copies: 10,
+    episodeId: "IV",
+    title: "Star Wars: A New Hope",
+    releaseYear: 1977,
+    boxOffice: 775.4, // box office in millions of dollars
   },
   {
-    code: "B002",
-    title: "The tell-tale brain",
-    author: "Ramachandran",
-    year: 2011,
-    copies: 10,
+    episodeId: "V",
+    title: "Star Wars: The Empire Strikes Back",
+    releaseYear: 1980,
+    boxOffice: 538.4, // box office in millions of dollars
   },
   {
-    code: "B003",
-    title: "Freakonomics",
-    author: "Levitt and Dubner",
-    year: 2005,
-    copies: 10,
-  },
-  {
-    code: "B004",
-    title: "Predictably irrational",
-    author: "Ariely",
-    year: 2008,
-    copies: 10,
-  },
-  {
-    code: "B005",
-    title: "Tesla: Man out of time",
-    author: "Cheney",
-    year: 2001,
-    copies: 10,
-  },
-  {
-    code: "B006",
-    title: "Salmon fishing in the Yemen",
-    author: "Torday",
-    year: 2007,
-    copies: 10,
-  },
-  {
-    code: "B007",
-    title: "The user illusion",
-    author: "Norretranders",
-    year: 1999,
-    copies: 10,
-  },
-  {
-    code: "B008",
-    title: "Hubble: Window of the universe",
-    author: "Sparrow",
-    year: 2010,
-    copies: 10,
+    episodeId: "VI",
+    title: "Star Wars: Return of the Jedi",
+    releaseYear: 1983,
+    boxOffice: 475.1, // box office in millions of dollars
   },
 ];
 
 // create the table and insert records in one go
-lib.createTableWithData("books", rows);
+lib.createTableWithData("movies", rows);
 
 lib.commit();
 ```
@@ -178,21 +102,21 @@ lib.commit();
 
 ```javascript
 // If database already exists, and want to alter existing tables
-if (!lib.columnExists("books", "publication")) {
-  lib.alterTable("books", "publication", "McGraw-Hill Education");
+if (!lib.columnExists("movies", "runTime")) {
+  lib.alterTable("movies", "runTime", 121);
   lib.commit(); // commit the deletions to localStorage
 }
 
 // Multiple columns can also added at once
 if (
   !(
-    lib.columnExists("books", "publication") &&
-    lib.columnExists("books", "ISBN")
+    lib.columnExists("movies", "runTime") &&
+    lib.columnExists("movies", "rating")
   )
 ) {
-  lib.alterTable("books", ["publication", "ISBN"], {
-    publication: "McGraw-Hill Education",
-    ISBN: "85-359-0277-5",
+  lib.alterTable("movies", ["runTime", "rating"], {
+    runTime: 121,
+    rating: "PG",
   });
   lib.commit(); // commit the deletions to localStorage
 }
@@ -204,21 +128,21 @@ if (
 
 ```javascript
 // simple select queries
-lib.queryAll("books", {
-  query: { year: 2011 },
+lib.queryAll("movies", {
+  query: { releaseYear: 1980 },
 });
-lib.queryAll("books", {
-  query: { year: 1999, author: "Norretranders" },
+lib.queryAll("movies", {
+  query: { releaseYear: 1977, boxOffice: 775.4 },
 });
 
-// select all books
-lib.queryAll("books");
+// select all movies
+lib.queryAll("movies");
 
-// select all books published after 2003
-lib.queryAll("books", {
+// select all movies released after 1979
+lib.queryAll("movies", {
   query: function (row) {
     // the callback function is applied to every row in the table
-    if (row.year > 2003) {
+    if (row.releaseYear > 1979) {
       // if it returns true, the row is selected
       return true;
     } else {
@@ -227,47 +151,47 @@ lib.queryAll("books", {
   },
 });
 
-// select all books by Torday and Sparrow
-lib.queryAll("books", {
+// select all movies with box office over 500 million
+lib.queryAll("movies", {
   query: function (row) {
-    if (row.author == "Torday" || row.author == "Sparrow") {
+    if (row.boxOffice > 500) {
       return true;
     } else {
       return false;
     }
   },
-  limit: 5,
+  limit: 2,
 });
 ```
 
 ### Sorting
 
 ```javascript
-// select 5 rows sorted in ascending order by author
-lib.queryAll("books", { limit: 5, sort: [["author", "ASC"]] });
+// select 2 rows sorted in ascending order by boxOffice
+lib.queryAll("movies", { limit: 2, sort: [["boxOffice", "ASC"]] });
 
-// select all rows first sorted in ascending order by author, and then, in descending, by year
-lib.queryAll("books", {
+// select all rows first sorted in ascending order by boxOffice, and then, in descending, by releaseYear
+lib.queryAll("movies", {
   sort: [
-    ["author", "ASC"],
-    ["year", "DESC"],
+    ["boxOffice", "ASC"],
+    ["releaseYear", "DESC"],
   ],
 });
 
-lib.queryAll("books", {
-  query: { year: 2011 },
-  limit: 5,
-  sort: [["author", "ASC"]],
+lib.queryAll("movies", {
+  query: { releaseYear: 1980 },
+  limit: 1,
+  sort: [["boxOffice", "ASC"]],
 });
 
 // or using query()'s positional arguments, which is a little messy (DEPRECATED)
-lib.query("books", null, null, null, [["author", "ASC"]]);
+lib.query("movies", null, null, null, [["boxOffice", "ASC"]]);
 ```
 
 ### Distinct records
 
 ```javascript
-lib.queryAll("books", { distinct: ["year", "author"] });
+lib.queryAll("movies", { distinct: ["releaseYear", "boxOffice"] });
 ```
 
 ### Example results from a query
@@ -277,25 +201,16 @@ lib.queryAll("books", { distinct: ["year", "author"] });
 // an ID field with the internal auto-incremented id of the row is also included
 // thus, ID is a reserved field name
 
-lib.queryAll("books", { query: { author: "ramachandran" } });
+lib.queryAll("movies", { query: { releaseYear: 1977 } });
 
 /* results
 [
  {
    ID: 1,
-   code: "B001",
-   title: "Phantoms in the brain",
-   author: "Ramachandran",
-   year: 1999,
-   copies: 10
- },
- {
-   ID: 2,
-   code: "B002",
-   title: "The tell-tale brain",
-   author: "Ramachandran",
-   year: 2011,
-   copies: 10
+   episodeId: "IV",
+   title: "Star Wars: A New Hope",
+   releaseYear: 1977,
+   boxOffice: 775.4
  }
 ]
 */
@@ -304,29 +219,23 @@ lib.queryAll("books", { query: { author: "ramachandran" } });
 ### Updating
 
 ```javascript
-// change the title of books published in 1999 to "Unknown"
-lib.update("books", { year: 1999 }, function (row) {
-  row.title = "Unknown";
-
-  // the update callback function returns to the modified record
-  return row;
+// update all movies from 1977 to $800M box office
+lib.update("movies", { releaseYear: 1977 }, function (row) {
+  return { boxOffice: 800.0 };
 });
 
-// add +5 copies to all books published after 2003
+// or update all movies released before 1980 to $800M box office
 lib.update(
-  "books",
+  "movies",
   function (row) {
-    // select condition callback
-    if (row.year > 2003) {
+    if (row.releaseYear < 1980) {
       return true;
     } else {
       return false;
     }
   },
   function (row) {
-    // update function
-    row.copies += 5;
-    return row;
+    return { boxOffice: 800.0 };
   }
 );
 ```
@@ -334,16 +243,15 @@ lib.update(
 ### Insert or Update conditionally
 
 ```javascript
-// if there's a book with code B003, update it, or insert it as a new row
+// if there's a movie with episodeId VI, update it, or insert it as a new row
 lib.insertOrUpdate(
-  "books",
-  { code: "B003" },
+  "movies",
+  { episodeId: "VI" },
   {
-    code: "B003",
-    title: "Freakonomics",
-    author: "Levitt and Dubner",
-    year: 2005,
-    copies: 15,
+    episodeId: "VI",
+    title: "Star Wars: Return of the Jedi",
+    releaseYear: 1983,
+    boxOffice: 500.5, // box office in millions of dollars
   }
 );
 
@@ -353,12 +261,12 @@ lib.commit();
 ### Deleting
 
 ```javascript
-// delete all books published in 1999
-lib.deleteRows("books", { year: 1999 });
+// delete all movies from 1977
+lib.deleteRows("movies", { releaseYear: 1977 });
 
-// delete all books published before 2005
-lib.deleteRows("books", function (row) {
-  if (row.year < 2005) {
+// delete all movies published before 1980
+lib.deleteRows("movies", function (row) {
+  if (row.releaseYear < 1980) {
     return true;
   } else {
     return false;
