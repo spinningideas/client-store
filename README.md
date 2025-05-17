@@ -1,43 +1,28 @@
 # client-db
 
-A simple client side database library implemented using localStorage or sessionStorage depending on the desired storage engine.
+A simple client side database library implemented using localStorage or sessionStorage depending on the desired storage engine. clientDB is a simple layer over localStorage (and sessionStorage) that provides a set of functions to store structured data like databases and tables.
 
-# License
-
-MIT
-
-## Installation
-
-```bash
-npm install client-db
-```
-
-# clientDB 2.3.2
-
-clientDB is a simple layer over localStorage (and sessionStorage) that provides a set of functions to store structured data like databases and tables.
 
 It provides basic insert/update/delete/query capabilities.
 clientDB has no dependencies, and is not based on WebSQL. Underneath it all, the structured data is stored as serialized JSON in localStorage or sessionStorage.
 
 - Inspired by localStorageDB by Kailash Nadh (https://github.com/knadh/localStorageDB)
 
+# License
+
 - Licensed: MIT license
 
-# Installation
+## Installation
 
 ## NPM
 
 `npm install clientDB`
 
-## Yarn
+# Run Tests
 
-`yarn add clientDB`
+See testing section below in the README for more information on running tests.
 
-## Bower
-
-`bower install clientDB`
-
-# Run Test Cases
+`npm run test`
 
 # Supported Browsers
 
