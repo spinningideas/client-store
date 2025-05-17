@@ -184,7 +184,7 @@ describe('clientDB Real Implementation', () => {
       db.commit();
       
       // Use queryAll with camelCase parameters
-      const users = db.queryAll('usersTable', {
+      const users = db.query('usersTable', {
         query: { age: 25 },
         limit: 10,
         start: 0

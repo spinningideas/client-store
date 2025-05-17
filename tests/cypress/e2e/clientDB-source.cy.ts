@@ -39,7 +39,7 @@ describe("clientDB Source Implementation", () => {
     expect(db.commit()).to.be.true;
 
     // Query the data with camelCase parameter
-    const users = db.queryAll("usersTable");
+    const users = db.query("usersTable");
     expect(users.length).to.equal(1);
     expect(users[0].name).to.equal("John Doe");
     expect(users[0].email).to.equal("john@example.com");
@@ -70,7 +70,7 @@ describe("clientDB Source Implementation", () => {
     db.commit();
 
     // Query the data with camelCase parameter
-    const users = db.queryAll("usersTable");
+    const users = db.query("usersTable");
     expect(users.length).to.equal(1);
     expect(users[0].age).to.equal(31);
   });
@@ -99,7 +99,7 @@ describe("clientDB Source Implementation", () => {
     db.commit();
 
     // Query the data with camelCase parameter
-    const users = db.queryAll("usersTable");
+    const users = db.query("usersTable");
     expect(users.length).to.equal(0);
   });
 
@@ -127,7 +127,7 @@ describe("clientDB Source Implementation", () => {
     db.commit();
 
     // Query the data with camelCase parameter
-    const users = db.queryAll("usersTable");
+    const users = db.query("usersTable");
     expect(users.length).to.equal(1);
     expect(users[0].age).to.equal(30);
     expect(users[0].address).to.equal("123 Main St");
@@ -157,7 +157,7 @@ describe("clientDB Source Implementation", () => {
     db.commit();
 
     // Use queryAll with camelCase parameters
-    const users = db.queryAll("usersTable", {
+    const users = db.query("usersTable", {
       query: { age: 25 },
       limit: 10,
       start: 0,
@@ -189,7 +189,7 @@ describe("clientDB Source Implementation", () => {
     db.commit();
 
     // Verify the record was inserted
-    let users = db.queryAll("usersTable");
+    let users = db.query("usersTable");
     expect(users.length).to.equal(1);
     expect(users[0].age).to.equal(30);
 
@@ -208,7 +208,7 @@ describe("clientDB Source Implementation", () => {
     db.commit();
 
     // Verify the record was updated
-    users = db.queryAll("usersTable");
+    users = db.query("usersTable");
     expect(users.length).to.equal(1);
     expect(users[0].email).to.equal("john.updated@example.com");
     expect(users[0].age).to.equal(31);

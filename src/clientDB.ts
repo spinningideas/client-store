@@ -3,7 +3,7 @@
  * @param object - The row to update.
  * @returns The updated row.
  */
-declare type updateCallback = (object: staticFields) => dynamicFields;
+declare type updateCallback = (object: staticFields) => dataFields;
 
 /**
  * Callback function to filter rows in a table.
@@ -13,15 +13,15 @@ declare type updateCallback = (object: staticFields) => dynamicFields;
 declare type updateCallbackFilter = (object: staticFields) => boolean;
 
 /** Fields that are not static but are specified at time of table creation and column definition */
-interface dynamicFields {
+interface dataFields {
   [T: string]: any;
 }
 
-/** Full set of static fields that comprise a given table definition
+/** Full set of data fields that comprise a given table definition.
  * The ROW_IDENTIFIER field is used to identify a row in the database.
  * The other fields are the fields that comprise a given table definition.
  */
-interface staticFields extends dynamicFields {
+interface staticFields extends dataFields {
   ROW_IDENTIFIER: string;
 }
 
@@ -58,7 +58,7 @@ declare class clientDB {
   alterTable(
     tableName: string,
     newFields: string[] | string,
-    defaultValues: dynamicFields | string
+    defaultValues: dataFields | string
   );
   /*
 	 Alter a table
@@ -79,7 +79,7 @@ declare class clientDB {
 	 - distinct is an array of fields whose values have to be unique in the returned rows
 	 Every returned row will have it's internal auto-incremented row identifier assigned to the variable ROW_IDENTIFIER
 	 */
-  queryAll(tableName: string, params?: queryParams): staticFields[];
+  query(tableName: string, params?: queryParams): staticFields[];
   /*
 	 Returns an array of rows (object literals) from a table matching the query.
 	 - query is either an object literal or null. If query is not supplied, all rows are returned
@@ -91,7 +91,7 @@ declare class clientDB {
 	 */
   update(
     tableName: string,
-    query: dynamicFields | updateCallbackFilter,
+    query: dataFields | updateCallbackFilter,
     updateFunction?: updateCallback
   ): number;
   /*
@@ -101,18 +101,18 @@ declare class clientDB {
 	 */
   insertOrUpdate(
     tableName: string,
-    query: dynamicFields | updateCallbackFilter,
-    data: dynamicFields
+    query: dataFields | updateCallbackFilter,
+    data: dataFields
   ): number;
   /*
 	 Inserts a row into a table if the given query matches no results, or updates the rows matching the query.
 	 - query is either an object literal, function, or null.
 	 - data is an object literal with field-values
-	 Returns the numerical ROW_IDENTIFIER if a new row was inserted, or an array of IDs if rows were updated
+	 Returns the numerical ROW_IDENTIFIER if a new row was inserted, or an array of ROW_IDENTIFIERs if rows were updated
 	 */
   deleteRows(
     tableName: string,
-    query: dynamicFields | updateCallbackFilter
+    query: dataFields | updateCallbackFilter
   ): number;
   /*
 	 Deletes rows from a table matching query, and returns the number of rows deleted
@@ -148,9 +148,37 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
     }
   }
 
-  // ______________________ private methods
+  // --------- private methods
 
-  // _________ database functions
+  /**
+   * Produces a string in GUID (Globally Unique Identifier) format
+   * of {XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}
+   *
+   * Returns {string} in GUID format.
+   */
+  function generateId() {
+    function s4() {
+      return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1);
+    }
+    return (
+      s4() +
+      s4() +
+      "-" +
+      s4() +
+      "-" +
+      s4() +
+      "-" +
+      s4() +
+      "-" +
+      s4() +
+      s4() +
+      s4()
+    );
+  }
+
+  // --------- database functions
   // drop the database
   function drop(): void {
     if (storage.hasOwnProperty(dbId)) {
@@ -191,7 +219,7 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
     return count;
   }
 
-  // _________ table functions
+  // --------- table functions
 
   // returns all fields in a table.
   function tableFields(tableName: string): string[] {
@@ -204,7 +232,7 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
   }
 
   // check whether a table exists, and if not, throw an error
-  function tableExistsWarn(tableName: string): void {
+  function tableMissingThrowError(tableName: string): void {
     if (!tableExists(tableName)) {
       error("The table '" + tableName + "' does not exist");
     }
@@ -245,7 +273,7 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
   function alterTable(
     tableName: string,
     newFields: string[],
-    defaultValues?: dynamicFields | string
+    defaultValues?: dataFields | string
   ): void {
     db.tables[tableName].fields = db.tables[tableName].fields.concat(newFields);
 
@@ -279,36 +307,8 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
     return count;
   }
 
-  /**
-   * Produces a string in GUID (Globally Unique Identifier) format
-   * of {XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}
-   *
-   * Returns {string} in GUID format.
-   */
-  function generateId() {
-    function s4() {
-      return Math.floor((1 + Math.random()) * 0x10000)
-        .toString(16)
-        .substring(1);
-    }
-    return (
-      s4() +
-      s4() +
-      "-" +
-      s4() +
-      "-" +
-      s4() +
-      "-" +
-      s4() +
-      "-" +
-      s4() +
-      s4() +
-      s4()
-    );
-  }
-
   // insert a row
-  function insert(tableName: string, data: dynamicFields): string | null {
+  function insert(tableName: string, data: dataFields): string | null {
     data = validateData(tableName, data);
     if (!data) {
       return null;
@@ -320,7 +320,7 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
     return rowIdentifier;
   }
 
-  // select rows, given a list of IDs of rows in a table
+  // select rows, given a list of ROW_IDENTIFIERs of rows in a table
   function select(
     tableName: string,
     ids: string[],
@@ -416,10 +416,10 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
     };
   }
 
-  // select rows in a table by field-value pairs, returns the IDs of matches
+  // select rows in a table by field-value pairs, returns the ROW_IDENTIFIERs of matches
   function queryByValues(
     tableName: string,
-    data: dynamicFields,
+    data: dataFields,
     limit?: number,
     start?: number
   ): string[] {
@@ -471,7 +471,7 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
     return resultIds;
   }
 
-  // select rows in a table by a function, returns the IDs of matches
+  // select rows in a table by a function, returns the ROW_IDENTIFIERs of matches
   function queryByFunction(
     tableName: string,
     queryFunction: updateCallbackFilter,
@@ -502,7 +502,7 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
     return resultIds;
   }
 
-  // return all the IDs in a table
+  // return all the ROW_IDENTIFIERs in a table
   function getIDs(tableName: string, limit?: number, start?: number): string[] {
     let resultIds: string[] = [];
 
@@ -520,7 +520,7 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
     return resultIds;
   }
 
-  // delete rows, given a list of their IDs in a table
+  // delete rows, given a list of their ROW_IDENTIFIERs in a table
   function deleteRows(tableName: string, ids: string[]): number {
     for (let i = 0; i < ids.length; i++) {
       if (db.data[tableName].hasOwnProperty(ids[i])) {
@@ -601,9 +601,9 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
   }
 
   // given a data list, only retain valid fields in a table
-  function validFields(tableName: string, data: dynamicFields): dynamicFields {
+  function validFields(tableName: string, data: dataFields): dataFields {
     let field = "";
-    const newData: dynamicFields = {};
+    const newData: dataFields = {};
 
     for (field in data) {
       const index = db.tables[tableName].fields.indexOf(field);
@@ -616,9 +616,9 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
   }
 
   // given a data list, populate with valid field names of a table
-  function validateData(tableName: string, data: dynamicFields): dynamicFields {
+  function validateData(tableName: string, data: dataFields): dataFields {
     let field = "";
-    const newData: dynamicFields = {};
+    const newData: dataFields = {};
     for (let i = 0; i < db.tables[tableName].fields.length; i++) {
       field = db.tables[tableName].fields[i];
       newData[field] =
@@ -627,7 +627,7 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
     return newData;
   }
 
-  // ______________________ public methods
+  // --------- public methods
 
   return {
     // commit the database to localStorage
@@ -728,7 +728,7 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
     // Create a table using array of Objects @ [{k:v,k:v},{k:v,k:v},etc]
     createTableWithData: function (
       tableName: string,
-      data: dynamicFields[]
+      data: dataFields[]
     ): boolean {
       if (typeof data !== "object" || !data.length || data.length < 1) {
         error(
@@ -755,13 +755,13 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
 
     // drop a table
     dropTable: function (tableName: string): void {
-      tableExistsWarn(tableName);
+      tableMissingThrowError(tableName);
       dropTable(tableName);
     },
 
     // empty a table
     truncate: function (tableName: string): void {
-      tableExistsWarn(tableName);
+      tableMissingThrowError(tableName);
       truncate(tableName);
     },
 
@@ -769,7 +769,7 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
     alterTable: function (
       tableName: string,
       newFields: string[],
-      defaultValues?: dynamicFields
+      defaultValues?: dataFields
     ): boolean {
       let result = false;
       if (!validateName(tableName)) {
@@ -830,23 +830,23 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
 
     // number of rows in a table
     rowCount: function (tableName: string): number {
-      tableExistsWarn(tableName);
+      tableMissingThrowError(tableName);
       return rowCount(tableName);
     },
 
     // insert a row
-    insert: function (tableName: string, data: dynamicFields): string | null {
-      tableExistsWarn(tableName);
+    insert: function (tableName: string, data: dataFields): string | null {
+      tableMissingThrowError(tableName);
       return insert(tableName, validateData(tableName, data));
     },
 
     // insert or update based on a given condition
     insertOrUpdate: function (
       tableName: string,
-      query: dynamicFields | updateCallbackFilter | null,
-      data: dynamicFields
+      query: dataFields | updateCallbackFilter | null,
+      data: dataFields
     ): string[] | null {
-      tableExistsWarn(tableName);
+      tableMissingThrowError(tableName);
 
       let resultIds: string[] = [];
       if (!query) {
@@ -879,10 +879,10 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
     // update rows
     update: function (
       tableName: string,
-      query: dynamicFields | updateCallbackFilter | null,
+      query: dataFields | updateCallbackFilter | null,
       updateFunction: updateCallback
     ): number {
-      tableExistsWarn(tableName);
+      tableMissingThrowError(tableName);
 
       let resultIds: string[] = [];
       if (!query) {
@@ -900,13 +900,13 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
     // select rows
     queryPagedSorted: function (
       tableName: string,
-      query?: dynamicFields | updateCallbackFilter | null,
+      query?: dataFields | updateCallbackFilter | null,
       limit?: number,
       start?: number,
       sort?: any[],
       distinct?: string[]
     ): staticFields[] {
-      tableExistsWarn(tableName);
+      tableMissingThrowError(tableName);
 
       let resultIds: string[] = [];
       if (!query) {
@@ -949,9 +949,9 @@ function clientDB(dbName: string, storageEngine?: Storage): any {
     // delete rows
     deleteRows: function (
       tableName: string,
-      query?: dynamicFields | updateCallbackFilter | null
+      query?: dataFields | updateCallbackFilter | null
     ): number {
-      tableExistsWarn(tableName);
+      tableMissingThrowError(tableName);
 
       let resultIds: string[] = [];
       if (!query) {

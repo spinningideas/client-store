@@ -127,4 +127,72 @@ describe('clientDB Parameter Tests', () => {
       expect(alterTableCall.args[1]).to.deep.equal(['age', 'address']); // newFields parameter
     });
   });
+  
+  it('should use camelCase parameters in query with object params', () => {
+    cy.window().then((win) => {
+      // Create a new database
+      const db = new win.clientDB('testDB');
+      
+      // Create a table
+      db.createTable('usersTable', ['name', 'email', 'age']);
+      
+      // Insert some test data
+      db.insert('usersTable', { name: 'John', email: 'john@example.com', age: 30 });
+      db.insert('usersTable', { name: 'Jane', email: 'jane@example.com', age: 25 });
+      
+      // Call the query method with params object (modern approach)
+      db.query('usersTable', {
+        query: { age: 25 },
+        limit: 10,
+        start: 0,
+        sort: [['name', 'ASC']],
+        distinct: ['name']
+      });
+      
+      // Get the recorded parameter calls
+      const calls = db.getParameterCalls();
+      
+      // Log the calls to help debug
+      cy.log('Calls:', JSON.stringify(calls));
+      
+      // Find the query call
+      const queryCall = calls.find(call => call.method === 'query');
+      expect(queryCall).to.not.be.undefined;
+      expect(queryCall.args[0]).to.equal('usersTable'); // tableName parameter
+      
+      // Check that the params object has the correct properties
+      const params = queryCall.args[1];
+      expect(params).to.be.an('object');
+      expect(params.query).to.deep.equal({ age: 25 });
+      expect(params.limit).to.equal(10);
+      expect(params.start).to.equal(0);
+      expect(params.sort).to.deep.equal([['name', 'ASC']]);
+      expect(params.distinct).to.deep.equal(['name']);
+    });
+  });
+  
+  it('should handle simple query calls with just the tableName', () => {
+    cy.window().then((win) => {
+      // Create a new database
+      const db = new win.clientDB('testDB');
+      
+      // Create a table
+      db.createTable('usersTable', ['name', 'email']);
+      
+      // Call query with just the tableName to get all records
+      db.query('usersTable');
+      
+      // Get the recorded parameter calls
+      const calls = db.getParameterCalls();
+      
+      // Log the calls to help debug
+      cy.log('Calls:', JSON.stringify(calls));
+      
+      // Find the query call
+      const queryCall = calls.find(call => call.method === 'query');
+      expect(queryCall).to.not.be.undefined;
+      expect(queryCall.args[0]).to.equal('usersTable'); // tableName parameter
+      expect(queryCall.args[1]).to.be.undefined; // No params provided
+    });
+  });
 });

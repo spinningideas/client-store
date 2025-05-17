@@ -55,7 +55,7 @@ interface ClientDB {
     sort?: any[],
     distinct?: string[]
   ): ClientDBFields[];
-  queryAll(
+  query(
     tableName: string,
     params: ClientDBQueryParams
   ): ClientDBFields[];

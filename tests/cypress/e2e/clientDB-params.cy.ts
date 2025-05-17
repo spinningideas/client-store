@@ -75,7 +75,7 @@ describe('clientDB Parameter Tests', () => {
               return true;
             }
             
-            queryAll(tableName, params) {
+            query(tableName, params) {
               this.recordCall('queryAll', tableName, params);
               return [{ row_identifier: 'id_1', name: 'Test User', age: 30 }];
             }
@@ -222,7 +222,7 @@ describe('clientDB Parameter Tests', () => {
       db.createTable('usersTable', ['name', 'email']);
       
       // Call the method with camelCase parameter
-      db.queryAll('usersTable', { query: { name: 'John' }, limit: 10 });
+      db.query('usersTable', { query: { name: 'John' }, limit: 10 });
       
       // Get the recorded parameter calls
       const calls = db.getParameterCalls();

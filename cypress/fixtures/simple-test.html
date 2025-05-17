@@ -65,19 +65,25 @@
         return true;
       }
       
-      queryAll(tableName, params) {
-        this.recordCall('queryAll', tableName, params);
+      query(tableName, params) {
+        // Handle both forms of the query method
+        if (arguments.length === 1 || (params && typeof params === 'object')) {
+          this.recordCall('query', tableName, params);
+        } else {
+          // Legacy format with separate parameters
+          const query = arguments[1];
+          const limit = arguments[2];
+          const start = arguments[3];
+          const sort = arguments[4];
+          const distinct = arguments[5];
+          this.recordCall('query', tableName, { query, limit, start, sort, distinct });
+        }
         return [{ row_identifier: 'id_1', name: 'Test User', age: 30 }];
       }
       
       insertOrUpdate(tableName, query, data) {
         this.recordCall('insertOrUpdate', tableName, query, data);
         return ['id_1'];
-      }
-      
-      query(tableName, query, limit, start, sort, distinct) {
-        this.recordCall('query', tableName, query, limit, start, sort, distinct);
-        return [{ row_identifier: 'id_1', name: 'Test User', age: 30 }];
       }
       
       commit() {

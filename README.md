@@ -2,7 +2,6 @@
 
 A simple client side database library implemented using localStorage or sessionStorage depending on the desired storage engine. clientDB is a simple layer over localStorage (and sessionStorage) that provides a set of functions to store structured data like databases and tables.
 
-
 It provides basic insert/update/delete/query capabilities.
 clientDB has no dependencies, and is not based on WebSQL. Underneath it all, the structured data is stored as serialized JSON in localStorage or sessionStorage.
 
@@ -34,36 +33,45 @@ Browsers need to support "Local Storage" in order for clientDB to function.
 
 ```javascript
 // Initialise. If the database doesn't exist, it is created
-var lib = new clientDB("library", localStorage);
+const moviesDB = new clientDB("movies", localStorage);
 
 // Check if the database was just created. Useful for initial database setup
-if (lib.isNew()) {
+if (moviesDB.isNew()) {
   // create the "movies" table
-  lib.createTable("movies", ["episodeId", "title", "releaseYear", "boxOffice"]);
+  moviesDB.createTable("movies", [
+    "episodeId",
+    "title",
+    "releaseYear",
+    "boxOffice",
+    "isBest",
+  ]);
 
   // insert some data
-  lib.insert("movies", {
+  moviesDB.insert("movies", {
     episodeId: "IV",
     title: "Star Wars: A New Hope",
     releaseYear: 1977,
     boxOffice: 775.4, // box office in millions of dollars
+    isBest: false,
   });
-  lib.insert("movies", {
+  moviesDB.insert("movies", {
     episodeId: "V",
     title: "Star Wars: The Empire Strikes Back",
     releaseYear: 1980,
     boxOffice: 538.4, // box office in millions of dollars
+    isBest: true, // The Empire Strikes Back is considered the best
   });
-  lib.insert("movies", {
+  moviesDB.insert("movies", {
     episodeId: "VI",
     title: "Star Wars: Return of the Jedi",
     releaseYear: 1983,
     boxOffice: 475.1, // box office in millions of dollars
+    isBest: false,
   });
 
   // commit the database to localStorage
   // all create/drop/insert/update/delete operations should be committed
-  lib.commit();
+  moviesDB.commit();
 }
 ```
 
@@ -71,76 +79,77 @@ if (lib.isNew()) {
 
 ```javascript
 // rows for pre-population
-var rows = [
+const rows = [
   {
     episodeId: "IV",
     title: "Star Wars: A New Hope",
     releaseYear: 1977,
     boxOffice: 775.4, // box office in millions of dollars
+    isBest: false,
   },
   {
     episodeId: "V",
     title: "Star Wars: The Empire Strikes Back",
     releaseYear: 1980,
     boxOffice: 538.4, // box office in millions of dollars
+    isBest: true, // The Empire Strikes Back is considered the best
   },
   {
     episodeId: "VI",
     title: "Star Wars: Return of the Jedi",
     releaseYear: 1983,
     boxOffice: 475.1, // box office in millions of dollars
+    isBest: false,
   },
 ];
 
 // create the table and insert records in one go
-lib.createTableWithData("movies", rows);
+moviesDB.createTableWithData("movies", rows);
 
-lib.commit();
+moviesDB.commit();
 ```
 
 ### Altering
 
 ```javascript
 // If database already exists, and want to alter existing tables
-if (!lib.columnExists("movies", "runTime")) {
-  lib.alterTable("movies", "runTime", 121);
-  lib.commit(); // commit the deletions to localStorage
+if (!moviesDB.columnExists("movies", "runTime")) {
+  moviesDB.alterTable("movies", "runTime", 121);
+  moviesDB.commit(); // commit the deletions to localStorage
 }
 
 // Multiple columns can also added at once
 if (
   !(
-    lib.columnExists("movies", "runTime") &&
-    lib.columnExists("movies", "rating")
+    moviesDB.columnExists("movies", "runTime") &&
+    moviesDB.columnExists("movies", "rating")
   )
 ) {
-  lib.alterTable("movies", ["runTime", "rating"], {
+  moviesDB.alterTable("movies", ["runTime", "rating"], {
     runTime: 121,
     rating: "PG",
   });
-  lib.commit(); // commit the deletions to localStorage
+  moviesDB.commit(); // commit the deletions to localStorage
 }
 ```
 
 ### Querying
 
-`query()` is deprecated. Use `queryAll()` instead.
-
 ```javascript
 // simple select queries
-lib.queryAll("movies", {
+moviesDB.query("movies", {
   query: { releaseYear: 1980 },
 });
-lib.queryAll("movies", {
+moviesDB.query("movies", {
   query: { releaseYear: 1977, boxOffice: 775.4 },
 });
 
 // select all movies
-lib.queryAll("movies");
+moviesDB.query("movies");
 
 // select all movies released after 1979
-lib.queryAll("movies", {
-  query: function (row) {
+moviesDB.query("movies", {
+  query: (row) => {
     // the callback function is applied to every row in the table
     if (row.releaseYear > 1979) {
       // if it returns true, the row is selected
@@ -151,16 +160,20 @@ lib.queryAll("movies", {
   },
 });
 
+// or with a more concise arrow function
+moviesDB.query("movies", {
+  query: (row) => row.releaseYear > 1979,
+});
+
 // select all movies with box office over 500 million
-lib.queryAll("movies", {
-  query: function (row) {
-    if (row.boxOffice > 500) {
-      return true;
-    } else {
-      return false;
-    }
-  },
+moviesDB.query("movies", {
+  query: (row) => row.boxOffice > 500, // concise arrow function
   limit: 2,
+});
+
+// select the best movie (using the boolean field)
+moviesDB.query("movies", {
+  query: { isBest: true },
 });
 ```
 
@@ -168,49 +181,47 @@ lib.queryAll("movies", {
 
 ```javascript
 // select 2 rows sorted in ascending order by boxOffice
-lib.queryAll("movies", { limit: 2, sort: [["boxOffice", "ASC"]] });
+moviesDB.query("movies", { limit: 2, sort: [["boxOffice", "ASC"]] });
 
 // select all rows first sorted in ascending order by boxOffice, and then, in descending, by releaseYear
-lib.queryAll("movies", {
+moviesDB.query("movies", {
   sort: [
     ["boxOffice", "ASC"],
     ["releaseYear", "DESC"],
   ],
 });
 
-lib.queryAll("movies", {
+moviesDB.query("movies", {
   query: { releaseYear: 1980 },
   limit: 1,
   sort: [["boxOffice", "ASC"]],
 });
-
-// or using query()'s positional arguments, which is a little messy (DEPRECATED)
-lib.query("movies", null, null, null, [["boxOffice", "ASC"]]);
 ```
 
 ### Distinct records
 
 ```javascript
-lib.queryAll("movies", { distinct: ["releaseYear", "boxOffice"] });
+moviesDB.query("movies", { distinct: ["releaseYear", "boxOffice"] });
 ```
 
 ### Example results from a query
 
 ```javascript
 // query results are returned as arrays of object literals
-// an ID field with the internal auto-incremented id of the row is also included
-// thus, ID is a reserved field name
+// an "row_identifier" field with the internal auto-incremented identifier of the row is also included
+// thus, row_identifier is a reserved field name
 
-lib.queryAll("movies", { query: { releaseYear: 1977 } });
+moviesDB.query("movies", { query: { isBest: true } });
 
 /* results
 [
  {
-   ID: 1,
-   episodeId: "IV",
-   title: "Star Wars: A New Hope",
-   releaseYear: 1977,
-   boxOffice: 775.4
+   ID: 2,
+   episodeId: "V",
+   title: "Star Wars: The Empire Strikes Back",
+   releaseYear: 1980,
+   boxOffice: 538.4,
+   isBest: true
  }
 ]
 */
@@ -220,23 +231,15 @@ lib.queryAll("movies", { query: { releaseYear: 1977 } });
 
 ```javascript
 // update all movies from 1977 to $800M box office
-lib.update("movies", { releaseYear: 1977 }, function (row) {
+moviesDB.update("movies", { releaseYear: 1977 }, (row) => {
   return { boxOffice: 800.0 };
 });
 
 // or update all movies released before 1980 to $800M box office
-lib.update(
+moviesDB.update(
   "movies",
-  function (row) {
-    if (row.releaseYear < 1980) {
-      return true;
-    } else {
-      return false;
-    }
-  },
-  function (row) {
-    return { boxOffice: 800.0 };
-  }
+  (row) => row.releaseYear < 1980, // simplified arrow function with implicit return
+  (row) => ({ boxOffice: 800.0 }) // arrow function with implicit return of object
 );
 ```
 
@@ -244,7 +247,7 @@ lib.update(
 
 ```javascript
 // if there's a movie with episodeId VI, update it, or insert it as a new row
-lib.insertOrUpdate(
+moviesDB.insertOrUpdate(
   "movies",
   { episodeId: "VI" },
   {
@@ -252,28 +255,23 @@ lib.insertOrUpdate(
     title: "Star Wars: Return of the Jedi",
     releaseYear: 1983,
     boxOffice: 500.5, // box office in millions of dollars
+    isBest: false,
   }
 );
 
-lib.commit();
+moviesDB.commit();
 ```
 
 ### Deleting
 
 ```javascript
 // delete all movies from 1977
-lib.deleteRows("movies", { releaseYear: 1977 });
+moviesDB.deleteRows("movies", { releaseYear: 1977 });
 
 // delete all movies published before 1980
-lib.deleteRows("movies", function (row) {
-  if (row.releaseYear < 1980) {
-    return true;
-  } else {
-    return false;
-  }
-});
+moviesDB.deleteRows("movies", (row) => row.releaseYear < 1980);
 
-lib.commit(); // commit the deletions to localStorage
+moviesDB.commit(); // commit the deletions to localStorage
 ```
 
 # Methods
@@ -289,9 +287,9 @@ lib.commit(); // commit the deletions to localStorage
 	<tbody>
 		<tr>
 			<td>clientDB()</td>
-			<td>database_name, storage_engine</td>
+			<td>databaseName, storageEngine</td>
 			<td>Constructor<br />
-				- storage_engine can either be localStorage (default) or sessionStorage
+				- storageEngine can either be an instance of localStorage (default) or sessionStorage from window object
 			</td>
 		</tr>
 		<tr>
@@ -380,13 +378,8 @@ lib.commit(); // commit the deletions to localStorage
 				Every row is assigned an auto-incremented numerical ID automatically
 			</td>
 		</tr>
-    	<tr>
-			<td>query() DEPRECATED</td>
-			<td>tableName, query, limit, start, sort</td>
-			<td></td>
-		</tr>
-        <tr>
-			<td>queryAll()</td>
+      <tr>
+			<td>query()</td>
 			<td>tableName, params{}</td>
 			<td>
 				Returns an array of rows (object literals) from a table matching the query.<br />
@@ -433,30 +426,30 @@ If you really need to store arrays and objects, you should implement a deep-copy
 
 # Feature Roadmap
 
-1) Implement support to store arrays and objects as column values.
-2) Implement support for storing JSON objects as column values.
-3) Add more comprehensive tests to check other aspects of the clientDB functionality
-4) Set up code coverage reporting to see how well the tests are covering the codebase
-5) Create a GitHub Actions workflow to automatically run these tests on pull requests
-6) Document the testing approach in the project README
+1. Implement support to store arrays and objects as column values.
+2. Implement support for storing JSON objects as column values.
+3. Add more comprehensive tests to check other aspects of the clientDB functionality
+4. Set up code coverage reporting to see how well the tests are covering the codebase
+5. Create a GitHub Actions workflow to automatically run these tests on pull requests
+6. Document the testing approach in the project README
 
 # Tests
 
 To run tests, use the following command:
 
-```npm run test```
+`npm run test`
 
 To run tests with coverage, use the following command:
 
-```npm run test:coverage```
+`npm run test:coverage`
 
 To run open the coverage report, use the following command:
 
-```npm run coverage:report```
+`npm run coverage:report`
 
-To open the coverage report in a browser, use the following command:  
+To open the coverage report in a browser, use the following command:
 
-```npm run coverage:open```
+`npm run coverage:open`
 
 The coverage report will show you:
 
