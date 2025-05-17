@@ -1,6 +1,10 @@
 # client-db
 
-A simple database layer for localStorage
+A simple client side database library implemented using localStorage or sessionStorage depending on the desired storage engine.
+
+# License
+
+MIT
 
 ## Installation
 
@@ -534,9 +538,14 @@ While the library is meant for storing fundamental types (strings, numbers, bool
 
 If you really need to store arrays and objects, you should implement a deep-copy function through which you pass the results before manipulation.
 
-# License
+# Feature Roadmap
 
-MIT
+1) Implement support to store arrays and objects as column values.
+2) Implement support for storing JSON objects as column values.
+3) Add more comprehensive tests to check other aspects of the clientDB functionality
+4) Set up code coverage reporting to see how well the tests are covering the codebase
+5) Create a GitHub Actions workflow to automatically run these tests on pull requests
+6) Document the testing approach in the project README
 
 # Tests
 
