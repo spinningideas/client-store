@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>clientStore Test</title>
+  <!-- Include the actual clientStore implementation -->
+  <script src="../../../dist/cjs/clientStore.js"></script>
+  <script>
+    // Ensure clientStore is available globally
+    if (typeof clientStore === 'undefined') {
+      console.error('clientStore is not defined! Check if the script loaded correctly.');
+    } else {
+      console.log('clientStore is available globally');
+    }
+  </script>
+</head>
+<body>
+  <h1>clientStore Test Page</h1>
+  <p>This page loads the actual clientStore implementation for testing.</p>
+</body>
+</html>
+    

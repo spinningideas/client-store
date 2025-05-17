@@ -5,11 +5,13 @@ export default defineConfig({
     setupNodeEvents(on, config) {
       return config;
     },
-    supportFile: false,
-    specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
+    supportFile: "tests/cypress/support/e2e.ts",
+    specPattern: 'tests/cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
     baseUrl: null,
     video: false,
     screenshotOnRunFailure: false,
+    fixturesFolder: 'tests/cypress/fixtures',
+    experimentalModifyObstructiveThirdPartyCode: true
   },
   component: {
     devServer: {
@@ -18,5 +20,6 @@ export default defineConfig({
     },
     supportFile: "tests/cypress/support/component.ts",
     specPattern: "tests/cypress/component/**/*.cy.{js,jsx,ts,tsx}",
+    fixturesFolder: 'tests/cypress/fixtures'
   },
 });

@@ -9,7 +9,7 @@
 // ***********************************************
 
 // Import the clientStore type definitions
-/// <reference path="./clientStore.d.ts" />
+/// <reference path="../../../src/clientStore.d.ts" />
 
 export {}; // Make this file a module
 

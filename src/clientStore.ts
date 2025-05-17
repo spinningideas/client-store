@@ -12,7 +12,7 @@ declare type updateCallback = (object: staticFields) => dataFields;
  */
 declare type updateCallbackFilter = (object: staticFields) => boolean;
 
-/** Fields that are not static but are specified at time of table creation and column definition */
+/** Fields that are specified at time of table creation and column definition */
 interface dataFields {
   [T: string]: any;
 }
@@ -26,7 +26,9 @@ interface staticFields extends dataFields {
 }
 
 /**
- * A simple client side data storage library implemented using localStorage or sessionStorage depending on the desired storage engine. clientStore is a simple layer over localStorage (and sessionStorage) that provides a set of functions to store structured data like databases and tables.
+ * A simple client side data storage library implemented using localStorage or sessionStorage depending on the desired storage engine.
+ * clientStore provides a set of functions to store structured data like a database containing tables and rows of data in a tabular format.
+ * It supports query operations and standard CRUD operations.
  *
  * @param storeName - The name of the storage storage database.
  * @param storageEngine - The storage engine to use (localStorage or sessionStorage). Defaults to localStorage.

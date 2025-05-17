@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>clientStore Parameter Tests</title>
+  <script>
+    // Mock implementation of clientStore for testing parameters using revealing module pattern
+    function clientStore(dbName, storageEngine) {
+      const storage = storageEngine || window.localStorage;
+      const storageExists = false; // equivalent to isNew in the old implementation
+      const tables = {};
+      
+      // For parameter testing
+      const parameterCalls = [];
+      
+      // Record parameter calls for testing
+      function recordCall(methodName, ...args) {
+        parameterCalls.push({
+          method: methodName,
+          args: args
+        });
+        return true;
+      }
+      
+      // Return the public API
+      return {
+        storageExists,
+        dbName,
+        tables,
+        
+        // Method to get parameter calls for testing
+        getParameterCalls() {
+          return parameterCalls;
+        },
+        
+        createTable(tableName, fields) {
+          recordCall('createTable', tableName, fields);
+          if (tables[tableName]) {
+            return false;
+          }
+          tables[tableName] = {
+            fields: ['row_identifier', ...fields],
+            data: {}
+          };
+          return true;
+        },
+        
+        insert(tableName, data) {
+          recordCall('insert', tableName, data);
+          if (tables[tableName]) {
+            const id = 'id_' + Date.now();
+            tables[tableName].data[id] = { row_identifier: id, ...data };
+            return id;
+          }
+          return null;
+        },
+        
+        update(tableName, query, updateFunction) {
+          recordCall('update', tableName, query, updateFunction);
+          return 1;
+        },
+        
+        deleteRows(tableName, query) {
+          recordCall('deleteRows', tableName, query);
+          return 1;
+        },
+        
+        alterTable(tableName, newFields, defaultValues) {
+          recordCall('alterTable', tableName, newFields, defaultValues);
+          return true;
+        },
+        
+        query(tableName, params) {
+          recordCall('query', tableName, params);
+          return [{ row_identifier: 'id_1', name: 'Test User', age: 30 }];
+        },
+        
+        upsert(tableName, query, data) {
+          recordCall('upsert', tableName, query, data);
+          return ['id_1'];
+        },
+        
+        upsertOrUpdate(tableName, query, data) {
+          recordCall('upsertOrUpdate', tableName, query, data);
+          return ['id_1'];
+        },
+        
+        commit() {
+          recordCall('commit');
+          return true;
+        }
+      };
+    }
+    
+    window.clientStore = clientStore;
+  </script>
+</head>
+<body>
+  <h1>clientStore Parameter Tests</h1>
+</body>
+</html>

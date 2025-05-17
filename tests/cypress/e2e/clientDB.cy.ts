@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-/// <reference path="../support/clientStore.d.ts" />
+/// <reference path="../../../src/clientStore.d.ts" />
 
 describe('clientStore', () => {
   beforeEach(() => {

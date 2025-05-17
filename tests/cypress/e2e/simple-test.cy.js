@@ -4,13 +4,13 @@ describe('clientStore Parameter Tests', () => {
     cy.clearLocalStorage();
     
     // Visit the test page with our mock implementation
-    cy.visit('cypress/fixtures/simple-test.html');
+    cy.visit('tests/cypress/fixtures/simple-test.html');
   });
 
   it('should use camelCase parameters in createTable', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientStore('testDB');
+      const db = win.clientStore('testDB');
       
       // Call the method with camelCase parameter
       db.createTable('usersTable', ['name', 'email']);
@@ -31,7 +31,7 @@ describe('clientStore Parameter Tests', () => {
   it('should use camelCase parameters in insert', () => {
     cy.window().then((win) => {
       // Create a new database
-      const db = new win.clientStore('testDB');
+      const db = win.clientStore('testDB');
       
       // Create a table
       db.createTable('usersTable', ['name', 'email']);
