@@ -12,7 +12,7 @@ declare type updateCallback = (object: staticFields) => dynamicFields;
  */
 declare type updateCallbackFilter = (object: staticFields) => boolean;
 
-/** Fields that are not static but have dynamic types */
+/** Fields that are not static but are specified at time of table creation and column definition */
 interface dynamicFields {
   [T: string]: any;
 }
