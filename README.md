@@ -4,6 +4,15 @@ A simple data storage library that works in both browser and Node.js environment
 
 - Inspired by localStorageDB by Kailash Nadh (https://github.com/knadh/localStorageDB) but updated to modern JavaScript standards and TypeScript support.
 
+## WARNING: This code is in active development and is not yet ready for production use. The API is subject to change.
+
+## Features
+
+- Provides ability to store (on the client-side in web browsers) structured data like a database containing tables and rows of data in a tabular format.
+- Supports query operations and standard CRUD operations.
+- Provides basic insert/update/delete/query capabilities with no dependencies.
+- The structured data is stored as serialized JSON in the selected storage engine (localStorage, sessionStorage, or a custom storage engine).
+
 # License
 
 - Licensed: MIT license
