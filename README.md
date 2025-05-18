@@ -72,7 +72,7 @@ if (moviesStore.storageExists === false) {
 }
 ```
 
-### Creating and populating a table in one go
+### Create and seed sata into Table in one process
 
 ```javascript
 // rows for pre-population
@@ -106,7 +106,7 @@ moviesStore.createTableWithData("movies", rows);
 moviesStore.commit();
 ```
 
-### Altering
+### Alter existing Table to add two new Columns
 
 ```javascript
 // If database already exists, and want to alter existing tables
@@ -130,7 +130,7 @@ if (
 }
 ```
 
-### Querying
+### Querying Data
 
 ```javascript
 // Define query parameters
@@ -179,7 +179,7 @@ const bestMovie = moviesStore.query("movies", {
 });
 ```
 
-### Sorting
+### Sorting Data
 
 ```javascript
 // Select 2 rows sorted in ascending order by boxOffice
@@ -204,7 +204,7 @@ const filteredSortedMovies = moviesStore.query("movies", {
 });
 ```
 
-### Distinct records
+### Getting Distinct rows of data
 
 ```javascript
 // Get records with distinct releaseYear and boxOffice values
@@ -213,7 +213,7 @@ const distinctMovies = moviesStore.query("movies", {
 });
 ```
 
-### Example results from a query
+### Example Query Results
 
 ```javascript
 // Query results are returned as arrays of object literals
@@ -237,7 +237,7 @@ console.log(bestMovie);
 */
 ```
 
-### Updating
+### Updating Data
 
 ```javascript
 // Update all movies from 1977 to $800M box office
@@ -262,7 +262,7 @@ console.log(`Updated ${updatedCount2} records`);
 moviesStore.commit();
 ```
 
-### Insert or Update conditionally
+### Upsert - Insert or Update conditionally
 
 ```javascript
 // If there's a movie with episodeId VI, update it, or insert it as a new row
@@ -299,7 +299,7 @@ console.log(result2 ? `Updated ${result2.length} rows` : "Inserted new row");
 moviesStore.commit();
 ```
 
-### Deleting
+### Deleting Data
 
 ```javascript
 // Delete all movies from 1977
@@ -317,145 +317,202 @@ console.log(`Deleted ${deletedCount2} records`);
 moviesStore.commit();
 ```
 
-# Methods
+# Available Methods
 
 <table>
 	<thead>
 		<tr>
-			<th>Method</th/>
-			<th>Arguments</th/>
+			<th>Method</th>
+			<th>Arguments</th>
 			<th>Description</th>
 		</tr>
 	</thead>
 	<tbody>
 		<tr>
 			<td>clientStore()</td>
-			<td>databaseName, storageEngine</td>
+			<td>storeName, storageEngine</td>
 			<td>Constructor<br />
-				- storageEngine can either be an instance of localStorage (default) or sessionStorage from window object
+				A simple client side data storage library implemented using localStorage or sessionStorage depending on the desired storage engine.<br />
+				clientStore provides a set of functions to store structured data like a database containing tables and rows of data in a tabular format.<br />
+				It supports query operations and standard CRUD operations.<br />
+				- storeName: The name of the storage database.<br />
+				- storageEngine: The storage engine to use (localStorage or sessionStorage). Defaults to localStorage.
 			</td>
 		</tr>
 		<tr>
-			<td>isNew()</td>
+			<td>storageHasBeenCreated()</td>
 			<td></td>
-			<td>Returns true if a database was created at the time of initialisation with the constructor</td>
+			<td>Returns true if the storage database has been created, false otherwise.</td>
 		</tr>
 		<tr>
-			<td>drop()</td>
-			<td></td>
-			<td>Deletes a database, and purges it from localStorage</td>
+			<td>importStorage()</td>
+			<td>data</td>
+			<td>Import and replace entire contents of localStorage storage database with passed in json.<br />
+				- data: The JSON data to replace the storage database with.
+			</td>
 		</tr>
 		<tr>
-			<td>tableCount()</td>
+			<td>exportStorage()</td>
 			<td></td>
-			<td>Returns the number of tables in a database</td>
+			<td>Returns the entire storage database as serialized JSON.<br />
+				Retrieves the current state of the storage database as a JSON string.
+			</td>
 		</tr>
 		<tr>
-			<td>commit()</td>
+			<td>dropStorage()</td>
 			<td></td>
-			<td>Commits the database to localStorage. Returns true if successful, and false otherwise (highly unlikely)</td>
-		</tr>
-		<tr>
-			<td>serialize()</td>
-			<td></td>
-			<td>Returns the entire database as serialized JSON</td>
+			<td>Deletes a storage database, and purges it from localStorage.</td>
 		</tr>
 		<tr>
 			<td>tableExists()</td>
 			<td>tableName</td>
-			<td>Checks whether a table exists in the database</td>
+			<td>Checks whether a table exists in the storage database.<br />
+				- tableName: The name of the table to check.
+			</td>
 		</tr>
 		<tr>
 			<td>tableFields()</td>
 			<td>tableName</td>
-			<td>Returns the list of fields of a table</td>
+			<td>Returns the list of fields of a table.<br />
+				- tableName: The name of the table.
+			</td>
 		</tr>
 		<tr>
 			<td>createTable()</td>
 			<td>tableName, fields</td>
-			<td>Creates a table<br />
-				- fields is an array of string fieldnames. 'ID' is a reserved fieldname.
-			</td>
-		</tr>
-		<tr>
-			<td>createTableWithData()</td>
-			<td>tableName, rows</td>
-			<td>Creates a table and populates it<br />
-				- rows is an array of object literals where each object represents a record<br />
-				[{field1: val, field2: val}, {field1: val, field2: val}]
+			<td>Creates a table - fields is an array of string fieldnames. 'ROW_IDENTIFIER' is a reserved fieldname.<br />
+				- tableName: The name of the table to create.<br />
+				- fields: Array of field names.
 			</td>
 		</tr>
 		<tr>
 			<td>alterTable()</td>
-			<td>tableName, new_fields, default_values</td>
-			<td>Alter a table<br />
-				- new_fields can be a array of columns OR a string of single column.<br />
-				- default_values (optional) can be a object of column's default values OR a default value string for single column for existing rows.
+			<td>tableName, newFields, defaultValues</td>
+			<td>Alter a table.<br />
+				- tableName: The name of the table to alter.<br />
+				- newFields: Array of columns to add.<br />
+				- defaultValues: Can be an object of column's default values OR a default value string for single column for existing rows.
 			</td>
 		</tr>
 		<tr>
 			<td>dropTable()</td>
 			<td>tableName</td>
-			<td>Deletes a table from the database</td>
+			<td>Drop a table.<br />
+				- tableName: The name of the table to drop.
+			</td>
 		</tr>
 		<tr>
 			<td>truncate()</td>
 			<td>tableName</td>
-			<td>Empties all records in a table and resets the internal auto increment ID to 0</td>
+			<td>Empty a table.<br />
+				- tableName: The name of the table to truncate.
+			</td>
 		</tr>
 		<tr>
 			<td>columnExists()</td>
-			<td>tableName, field_name</td>
-			<td>Checks whether a column exists in database table.</td>
+			<td>tableName, fieldName</td>
+			<td>Checks whether a column exists in storage database table.<br />
+				- tableName: The name of the table.<br />
+				- fieldName: The name of the field/column to check.
+			</td>
+		</tr>
+		<tr>
+			<td>commit()</td>
+			<td></td>
+			<td>Commits the storage database to localStorage.<br />
+				Saves the current state of the storage database to localStorage.<br />
+				Returns true if the commit was successful, false otherwise.
+			</td>
+		</tr>
+		<tr>
+			<td>getItem()</td>
+			<td>key</td>
+			<td>Retrieve specified value from localStorage.<br />
+				- key: The key to retrieve.<br />
+				Returns the value or null if not found.
+			</td>
+		</tr>
+		<tr>
+			<td>setItem()</td>
+			<td>key, value</td>
+			<td>Set value for localStorage.<br />
+				- key: The key to set.<br />
+				- value: The value to set.<br />
+				Returns true if successful, false otherwise.
+			</td>
+		</tr>
+		<tr>
+			<td>tableCount()</td>
+			<td></td>
+			<td>Returns the number of tables in a storage database.</td>
 		</tr>
 		<tr>
 			<td>rowCount()</td>
 			<td>tableName</td>
-			<td>Returns the number of rows in a table</td>
+			<td>Returns the number of rows in a table.<br />
+				- tableName: The name of the table.
+			</td>
+		</tr>
+		<tr>
+			<td>query()</td>
+			<td>tableName, ids, start, limit, sort, distinct</td>
+			<td>Select rows, given a list of ROW_IDENTIFIERs of rows in a table.<br />
+				- tableName: The name of the table.<br />
+				- ids: Array of ROW_IDENTIFIERs to select.<br />
+				- start: The number of rows to skip from the beginning (offset).<br />
+				- limit: The maximum number of rows to be returned.<br />
+				- sort: Array of sort conditions, each one of which is an array with two values.<br />
+				- distinct: Array of fields whose values have to be unique in the returned rows.<br />
+				Returns array of rows matching the query.
+			</td>
 		</tr>
 		<tr>
 			<td>insert()</td>
 			<td>tableName, data</td>
-			<td>Inserts a row into a table and returns its numerical ID<br />
-				- data is an object literal with field-values<br />
-				Every row is assigned an auto-incremented numerical ID automatically
+			<td>Inserts a row into a table.<br />
+				- tableName: The name of the table.<br />
+				- data: The data to insert.<br />
+				Returns the ROW_IDENTIFIER of the inserted row, or null if insertion failed.
 			</td>
 		</tr>
-      <tr>
-			<td>query()</td>
-			<td>tableName, params{}</td>
-			<td>
-				Returns an array of rows (object literals) from a table matching the query.<br />
-				- query is either an object literal or null. If query is not supplied, all rows are returned<br />
-				- limit is the maximum number of rows to be returned<br />
-    			- start is the  number of rows to be skipped from the beginning (offset)<br />
-    			- sort is an array of sort conditions, each one of which is an array in itself with two values<br />
-    			- distinct is an array of fields whose values have to be unique in the returned rows<br />
-				Every returned row will have it's internal auto-incremented id assigned to the variable ID</td>
+		<tr>
+			<td>upsert()</td>
+			<td>tableName, query, data</td>
+			<td>Insert or update based on a given condition.<br />
+				- tableName: The name of the table.<br />
+				- query: The query to match rows.<br />
+				- data: The data to insert or update.<br />
+				Returns array of ROW_IDENTIFIERs of the updated rows or null.
+			</td>
+		</tr>
+		<tr>
+			<td>upsertOrUpdate()</td>
+			<td>tableName, query, data</td>
+			<td>Insert or update rows based on a given condition.<br />
+				Alias to upsert. Use upsert for better clarity.<br />
+				- tableName: The name of the table.<br />
+				- query: The query to match rows.<br />
+				- data: The data to insert or update.<br />
+				Returns array of ROW_IDENTIFIERs of the updated rows or null.
+			</td>
 		</tr>
 		<tr>
 			<td>update()</td>
-			<td>tableName, query, updateFunction</td>
-			<td>Updates existing records in a table matching query, and returns the number of rows affected<br />
-				- query is an object literal or a function. If query is not supplied, all rows are updated<br />
-				- updateFunction is a function that returns an object literal with the updated values
+			<td>tableName, ids, updateFunction</td>
+			<td>Update rows having given row identifiers.<br />
+				- tableName: The name of the table.<br />
+				- ids: Array of ROW_IDENTIFIERs to update.<br />
+				- updateFunction: A function that returns an object with the updated values.<br />
+				Returns the number of rows updated.
 			</td>
 		</tr>
-			<tr>
-				<td>insertOrUpdate()</td>
-				<td>tableName, query, data</td>
-				<td>Inserts a row into a table if the given query matches no results, or updates the rows matching the query.<br />
-					- query is either an object literal, function, or null.<br />
-					- data is an object literal with field-values
-					<br /><br />
-					Returns the numerical ID if a new row was inserted, or an array of IDs if rows were updated
-				</td>
-			</tr>
 		<tr>
 			<td>deleteRows()</td>
-			<td>tableName, query</td>
-			<td>Deletes rows from a table matching query, and returns the number of rows deleted<br />
-				- query is either an object literal or a function. If query is not supplied, all rows are deleted
+			<td>tableName, ids</td>
+			<td>Deletes rows, given a list of their ROW_IDENTIFIERs in a table.<br />
+				- tableName: The name of the table.<br />
+				- ids: Array of ROW_IDENTIFIERs to delete.<br />
+				Returns the number of rows deleted.
 			</td>
 		</tr>
 	</tbody>

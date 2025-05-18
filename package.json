@@ -36,7 +36,8 @@
     "coverage:report": "nyc report --reporter=text-summary --reporter=html",
     "coverage:open": "npx open-cli coverage/index.html",
     "coverage:clean": "rimraf .nyc_output coverage",
-    "coverage:full": "npm run coverage:clean && npm run build && npm run test:coverage && npm run coverage:report"
+    "coverage:full": "npm run coverage:clean && npm run build && npm run test:coverage && npm run coverage:report",
+    "publish:npm": "npm run build && npm test && npm publish"
   },
   "repository": {
     "type": "git",
