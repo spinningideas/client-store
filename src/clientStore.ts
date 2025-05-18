@@ -217,6 +217,32 @@ function clientStore(
   }
 
   /**
+   * Sort a result set by a specific field
+   * @param {string} field - The field to sort by
+   * @param {string} [order] - The sort order (ASC or DESC)
+   * @returns {Function} A comparison function for sorting
+   * @private
+   */
+  function sortResults(
+    field: string,
+    order?: string
+  ): (x: ClientStorageFields, y: ClientStorageFields) => number {
+    return function (x: ClientStorageFields, y: ClientStorageFields): number {
+      // case insensitive comparison for string values
+      const v1 =
+        typeof x[field] === "string" ? x[field].toLowerCase() : x[field];
+      const v2 =
+        typeof y[field] === "string" ? y[field].toLowerCase() : y[field];
+
+      if (order === "DESC") {
+        return v1 === v2 ? 0 : v1 < v2 ? 1 : -1;
+      } else {
+        return v1 === v2 ? 0 : v1 > v2 ? 1 : -1;
+      }
+    };
+  }
+
+  /**
    * Select rows, given a list of row IDs of rows in a table
    * @param {string} tableName - The name of the table
    * @param {string[]} ids - Array of ROW_IDENTIFIERs of rows to select
@@ -472,6 +498,22 @@ function clientStore(
   // --------- table functions
 
   /**
+   * Checks whether a table exists in the storage database
+   * @param {string} tableName - The name of the table to check
+   * @returns {boolean} True if the table exists, false otherwise
+   */
+  function tableExists(tableName: string): boolean {
+    return storageInstance.tables[tableName] ? true : false;
+  }
+
+  // check whether a table exists, and if not, throw an error
+  function tableMissingThrowError(tableName: string): void {
+    if (!tableExists(tableName)) {
+      handleError("The table '" + tableName + "' does not exist");
+    }
+  }
+
+  /**
    * Returns the number of tables in a storage database
    * @returns {number} The number of tables
    */
@@ -492,22 +534,6 @@ function clientStore(
    */
   function tableFields(tableName: string): string[] {
     return storageInstance.tables[tableName].fields;
-  }
-
-  /**
-   * Checks whether a table exists in the storage database
-   * @param {string} tableName - The name of the table to check
-   * @returns {boolean} True if the table exists, false otherwise
-   */
-  function tableExists(tableName: string): boolean {
-    return storageInstance.tables[tableName] ? true : false;
-  }
-
-  // check whether a table exists, and if not, throw an error
-  function tableMissingThrowError(tableName: string): void {
-    if (!tableExists(tableName)) {
-      handleError("The table '" + tableName + "' does not exist");
-    }
   }
 
   // check whether a table column exists
@@ -560,6 +586,39 @@ function clientStore(
     tableMissingThrowError(tableName);
     storageInstance.data[tableName] = {};
     commit();
+  }
+
+  // create a table using array of Objects @ [{k:v,k:v},{k:v,k:v},etc]
+  function createTableWithData(
+    tableName: string,
+    data: ClientStorageDataFields[]
+  ) {
+    if (typeof data !== "object" || !data.length || data.length < 1) {
+      handleError(
+        "Data supplied isn't in object form. Example: [{k:v,k:v},{k:v,k:v} ..]"
+      );
+      return false;
+    }
+
+    let fields = Object.keys(data[0]);
+
+    // create the table
+    const tableExistsAlready = tableExists(tableName);
+    if (!tableExistsAlready) {
+      createTable(tableName, fields);
+    }
+    if (data && data.length > 0) {
+      // populate
+      for (let i = 0; i < data.length; i++) {
+        if (!insert(tableName, data[i])) {
+          handleError(
+            "Failed to insert record: [" + JSON.stringify(data[i]) + "]"
+          );
+        }
+      }
+      commit();
+    }
+    return true;
   }
 
   /**
@@ -681,31 +740,18 @@ function clientStore(
   }
 
   /**
-   * Sort a result set by a specific field
-   * @param {string} field - The field to sort by
-   * @param {string} [order] - The sort order (ASC or DESC)
-   * @returns {Function} A comparison function for sorting
+   * Select rows given a params object that is a where clause of the query. 
+   * If no params are provided, all rows are returned.
+   * @param {string} tableName - The name of the table
+   * @param {string[]|ClientStorageDataFields|storageUpdateCallbackFilter} params - The list of fields use in the select
+   * @returns {ClientStorageFields[]} Array of rows matching the query
    */
-  function sortResults(
-    field: string,
-    order?: string
-  ): (x: ClientStorageFields, y: ClientStorageFields) => number {
-    return function (x: ClientStorageFields, y: ClientStorageFields): number {
-      // case insensitive comparison for string values
-      const v1 =
-        typeof x[field] === "string" ? x[field].toLowerCase() : x[field];
-      const v2 =
-        typeof y[field] === "string" ? y[field].toLowerCase() : y[field];
-
-      if (order === "DESC") {
-        return v1 === v2 ? 0 : v1 < v2 ? 1 : -1;
-      } else {
-        return v1 === v2 ? 0 : v1 > v2 ? 1 : -1;
-      }
-    };
+  function queryAll(
+    tableName: string,
+    params?: string[] | ClientStorageDataFields | storageUpdateCallbackFilter
+  ): ClientStorageFields[] {
+    return query(tableName, params);
   }
-
-  // queryBy function removed as it duplicated queryByFunction
 
   /**
    * Deletes rows, given a list of their ROW_IDENTIFIERs in a table
@@ -954,6 +1000,7 @@ function clientStore(
     tableExists,
     tableFields,
     createTable,
+    createTableWithData,
     alterTable,
     dropTable,
     truncate,
@@ -964,6 +1011,7 @@ function clientStore(
     tableCount,
     rowCount,
     query,
+    queryAll,
     insert,
     upsert,
     insertOrUpdate,

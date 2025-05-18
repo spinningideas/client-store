@@ -205,6 +205,18 @@ interface clientStore {
   ): ClientStorageFields[];
   
   /**
+   * Select rows given a params object that is a where clause of the query.
+   * If no params are provided, all rows are returned.
+   * @param {string} tableName - The name of the table
+   * @param {string[]|ClientStorageDataFields|storageUpdateCallbackFilter} params - The list of fields use in the select
+   * @returns {ClientStorageFields[]} Array of rows matching the query
+   */
+  queryAll(
+    tableName: string,
+    params?: string[] | ClientStorageDataFields | storageUpdateCallbackFilter
+  ): ClientStorageFields[];
+  
+  /**
    * Inserts data into a table.
    * @param {string} tableName - The name of the table to insert into.
    * @param {ClientStorageDataFields} data - The data to insert.

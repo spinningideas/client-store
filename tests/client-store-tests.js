@@ -87,6 +87,63 @@ describe("clientStore", function () {
       store.createTable("books", ["code", "title", "author", "year", "copies"]);
     });
 
+    it("should create a table and insert data in one operation using createTableWithData", function () {
+      // Books data for testing
+      const books = [
+        {
+          code: "B001",
+          title: "The Great Gatsby",
+          author: "F. Scott Fitzgerald",
+          year: 1925,
+          copies: 10,
+          isClassic: true,
+        },
+        {
+          code: "B002",
+          title: "To Kill a Mockingbird",
+          author: "Harper Lee",
+          year: 1960,
+          copies: 15,
+          isClassic: true,
+        },
+        {
+          code: "B003",
+          title: "The Hunger Games",
+          author: "Suzanne Collins",
+          year: 2008,
+          copies: 20,
+          isClassic: false,
+        },
+      ];
+
+      // Create the table and insert records in one go
+      const result = store.createTableWithData("library_books", books);
+      
+      // Verify the operation was successful
+      assert.strictEqual(result, true);
+      
+      // Verify the table exists
+      assert.strictEqual(store.tableExists("library_books"), true);
+      
+      // Verify the table has the correct fields
+      const fields = store.tableFields("library_books");
+      assert.deepStrictEqual(fields, ["code", "title", "author", "year", "copies", "isClassic"]);
+      
+      // Verify the row count
+      assert.strictEqual(store.rowCount("library_books"), 3);
+      
+      // Verify the data was inserted correctly
+      const allBooks = store.query("library_books");
+      assert.strictEqual(allBooks.length, 3);
+      
+      // Verify specific data points
+      const classicBooks = store.query("library_books", { isClassic: true });
+      assert.strictEqual(classicBooks.length, 2);
+      assert.strictEqual(classicBooks[0].code, "B001");
+      assert.strictEqual(classicBooks[0].title, "The Great Gatsby");
+      assert.strictEqual(classicBooks[1].title, "To Kill a Mockingbird");
+    });
+
     it("should insert data into a table", function () {
       const id = store.insert("books", {
         code: "B001",
@@ -117,6 +174,49 @@ describe("clientStore", function () {
       assert.equal(results[0].author, "Test Author");
       assert.equal(results[0].year, 2023);
       assert.equal(results[0].copies, 10);
+    });
+    
+    it("should query all data using queryAll method", function () {
+      // Insert multiple books
+      store.insert("books", {
+        code: "B001",
+        title: "Book One",
+        author: "Author One",
+        year: 2020,
+        copies: 5,
+      });
+      
+      store.insert("books", {
+        code: "B002",
+        title: "Book Two",
+        author: "Author Two",
+        year: 2021,
+        copies: 10,
+      });
+      
+      store.insert("books", {
+        code: "B003",
+        title: "Book Three",
+        author: "Author One", // Same author as Book One
+        year: 2022,
+        copies: 15,
+      });
+      
+      // Test queryAll with no parameters (should return all books)
+      const allBooks = store.queryAll("books");
+      assert.equal(allBooks.length, 3);
+      
+      // Test queryAll with object parameter (filter by author)
+      const authorOneBooks = store.queryAll("books", { author: "Author One" });
+      assert.equal(authorOneBooks.length, 2);
+      assert.equal(authorOneBooks[0].code, "B001");
+      assert.equal(authorOneBooks[1].code, "B003");
+      
+      // Test queryAll with function parameter
+      const recentBooks = store.queryAll("books", (book) => book.year > 2020);
+      assert.equal(recentBooks.length, 2);
+      assert.equal(recentBooks[0].code, "B002");
+      assert.equal(recentBooks[1].code, "B003");
     });
 
     it("should query data without specifying IDs", function () {

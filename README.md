@@ -686,8 +686,8 @@ npm publish
 
 # Feature Roadmap
 
-1. Implement support to store arrays and objects as column values.
-2. Implement support for storing JSON objects as column values.
+1. Add tests for the pagingation and sorting features in query.
+2. Implement support to store JSON objects and arrays as column values.
 3. Create a GitHub Actions workflow to automatically run these tests on pull requests
 4. Add GitHub action to automatically build and publish the package to npm on push to main
 5. Add GitHub Pages to host the documentation
