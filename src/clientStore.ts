@@ -1,16 +1,57 @@
+/*
+ * ClientStorage is the contract for the type needed for data storage
+ *  that can be implemented using actual localStorage or sessionStorage
+ *  depending on the desired storage engine or environment.
+ */
+export class ClientStorage {
+  store: { [key: string]: string };
+
+  constructor() {
+    this.store = {};
+  }
+
+  clear() {
+    this.store = {};
+  }
+
+  getItem(key) {
+    return this.store[key] || null;
+  }
+
+  setItem(key, value) {
+    this.store[key] = String(value);
+  }
+
+  removeItem(key) {
+    delete this.store[key];
+  }
+
+  get length() {
+    return Object.keys(this.store).length;
+  }
+
+  key(index) {
+    return Object.keys(this.store)[index] || null;
+  }
+}
+
 /**
  * Callback function to update a row in a table.
  * @param object - The row to update.
  * @returns The updated row.
  */
-declare type storageUpdateCallback = (object: ClientStorageFields) => ClientStorageDataFields;
+declare type storageUpdateCallback = (
+  object: ClientStorageFields
+) => ClientStorageDataFields;
 
 /**
  * Callback function to filter rows in a table.
  * @param object - The row to filter.
  * @returns True if the row should be included, false otherwise.
  */
-declare type storageUpdateCallbackFilter = (object: ClientStorageFields) => boolean;
+declare type storageUpdateCallbackFilter = (
+  object: ClientStorageFields
+) => boolean;
 
 /** Fields that are specified at time of table creation and column definition */
 interface ClientStorageDataFields {
@@ -41,15 +82,53 @@ type ClientStorageSortDirection = [string, "ASC" | "DESC"];
  * @param storageEngine - The storage engine to use (localStorage or sessionStorage). Defaults to localStorage.
  * @returns A clientStore instance with methods for working with the storage database.
  */
-function clientStore(storeName: string, storageEngine?: Storage) {
+function clientStore(
+  storeName: string,
+  storageEngine?: ClientStorage | typeof localStorage | typeof sessionStorage
+) {
   const storePrefix = "store_";
   const storageIdentifier = storePrefix + storeName;
   let storageExists = false; // determines whether a new storage database was created during an object initialization
   let storageInstance = null;
-  const storage =
-    storageEngine === sessionStorage
-      ? window.sessionStorage
-      : window.localStorage;
+  // Determine the appropriate storage mechanism based on environment
+  // and handle both browser and Node.js environments
+  let storage: ClientStorage | typeof localStorage | typeof sessionStorage;
+
+  // Check if we're in a browser environment (window exists)
+  if (typeof window !== "undefined") {
+    // In browser environments
+    if (storageEngine) {
+      // If a storage engine is provided, use it
+      storage = storageEngine;
+    } else {
+      // Default to localStorage if no storage engine is provided
+      storage = window.localStorage;
+    }
+  } else {
+    // In Node.js environment, use the provided storage engine or a fallback in-memory storage
+    if (storageEngine) {
+      // Use the provided storage engine (likely from a polyfill like sessionstorage-for-nodejs)
+      storage = storageEngine;
+    } else {
+      // Create a fallback in-memory storage if none provided
+      if (!global.clientStoreMemoryStorage) {
+        global.clientStoreMemoryStorage = {};
+      }
+      storage = {
+        getItem: (key) => global.clientStoreMemoryStorage[key] || null,
+        setItem: (key, value) => {
+          global.clientStoreMemoryStorage[key] = value;
+        },
+        removeItem: (key) => {
+          delete global.clientStoreMemoryStorage[key];
+        },
+        length: global.clientStoreMemoryStorage.length,
+        key: (index) => {
+          return Object.keys(global.clientStoreMemoryStorage)[index];
+        },
+      } as ClientStorage;
+    }
+  }
 
   // if the storage database doesn't exist, create it
   storageInstance = storage[storageIdentifier];
@@ -105,6 +184,226 @@ function clientStore(storeName: string, storageEngine?: Storage) {
     );
   }
 
+  /***
+   * Returns all the ROW_IDENTIFIERs in a table.
+   * @param {string} tableName - The name of the table
+   * @param {number} [limit] - The maximum number of ROW_IDENTIFIERs to return
+   * @param {number} [start] - The starting index of the ROW_IDENTIFIERs to return
+   * @returns {string[]} Array of ROW_IDENTIFIERs
+   * @private
+   */
+  function getRowIdentifiers(
+    tableName: string,
+    limit?: number,
+    start?: number
+  ): string[] {
+    tableMissingThrowError(tableName);
+    let rowIds: string[] = [];
+
+    for (const rowIdentifier in storageInstance.data[tableName]) {
+      if (storageInstance.data[tableName].hasOwnProperty(rowIdentifier)) {
+        rowIds.push(rowIdentifier);
+      }
+    }
+
+    // Apply pagination
+    start = start || 0;
+    if (limit) {
+      rowIds = rowIds.slice(start, start + limit);
+    } else if (start > 0) {
+      rowIds = rowIds.slice(start);
+    }
+    return rowIds;
+  }
+
+  /**
+   * Select rows, given a list of row IDs of rows in a table
+   * @param {string} tableName - The name of the table
+   * @param {string[]} ids - Array of ROW_IDENTIFIERs of rows to select
+   * @param {number} [start] - The starting index of the rows to return
+   * @param {number} [limit] - The maximum number of rows to return
+   * @param {ClientStorageSortDirection[]} [sort] - Array of sorting parameters
+   * @param {string[]} [distinct] - Array of fields to apply distinct operation on
+   * @returns {ClientStorageFields[]} Array of selected rows
+   * @private
+   */
+  function select(
+    tableName: string,
+    ids: string[],
+    start?: number,
+    limit?: number,
+    sort?: ClientStorageSortDirection[],
+    distinct?: string[]
+  ): ClientStorageFields[] {
+    let ID: string | null = null,
+      results: ClientStorageFields[] = [],
+      row: ClientStorageFields | null = null;
+
+    for (let x = 0; x < ids.length; x++) {
+      ID = ids[x];
+      row = storageInstance.data[tableName][ID];
+      results.push(clone(row));
+    }
+
+    // there are sorting params
+    if (sort && sort instanceof Array) {
+      for (let i = 0; i < sort.length; i++) {
+        results.sort(
+          sortResults(sort[i][0], sort[i].length > 1 ? sort[i][1] : null)
+        );
+      }
+    }
+
+    // distinct params
+    if (distinct && distinct instanceof Array) {
+      for (let j = 0; j < distinct.length; j++) {
+        let seen: { [key: string]: number } = {},
+          d = distinct[j];
+
+        for (let z = 0; z < results.length; z++) {
+          if (results[z] === undefined) {
+            continue;
+          }
+
+          if (
+            results[z].hasOwnProperty(d) &&
+            seen.hasOwnProperty(results[z][d])
+          ) {
+            delete results[z];
+          } else {
+            seen[results[z][d]] = 1;
+          }
+        }
+      }
+
+      // Filter out undefined values
+      let new_results: ClientStorageFields[] = [];
+      for (let c = 0; c < results.length; c++) {
+        if (results[c] !== undefined) {
+          new_results.push(results[c]);
+        }
+      }
+
+      results = new_results;
+    }
+
+    // limit and offset
+    start = start && typeof start === "number" ? start : null;
+    limit = limit && typeof limit === "number" ? limit : null;
+
+    if (start && limit) {
+      results = results.slice(start, start + limit);
+    } else if (start) {
+      results = results.slice(start);
+    } else if (limit) {
+      results = results.slice(start, limit);
+    }
+
+    return results;
+  }
+
+  /**
+   * Select rows in a table by field-value pairs, returns the ROW_IDENTIFIERs of matches
+   * @param {string} tableName - The name of the table
+   * @param {ClientStorageDataFields} data - Object with field-value pairs to match
+   * @param {number} [limit] - The maximum number of rows to be returned
+   * @param {number} [start] - The number of rows to skip from the beginning (offset)
+   * @returns {string[]} Array of ROW_IDENTIFIERs matching the query
+   * @private
+   */
+  function queryByValues(
+    tableName: string,
+    data: ClientStorageDataFields,
+    limit?: number,
+    start?: number
+  ): string[] {
+    let rowIds: string[] = [];
+    let exists = false;
+    let row = null;
+
+    // loop through all the records in the table, looking for matches
+    for (const rowIdentifier in storageInstance.data[tableName]) {
+      if (!storageInstance.data[tableName].hasOwnProperty(rowIdentifier)) {
+        continue;
+      }
+
+      row = storageInstance.data[tableName][rowIdentifier];
+      exists = true;
+
+      for (const field in data) {
+        if (!data.hasOwnProperty(field)) {
+          continue;
+        }
+
+        if (typeof data[field] === "string") {
+          // if the field is a string, do a case insensitive comparison
+          if (
+            row[field] === null ||
+            row[field].toString().toLowerCase() !==
+              data[field].toString().toLowerCase()
+          ) {
+            exists = false;
+            break;
+          }
+        } else {
+          if (row[field] !== data[field]) {
+            exists = false;
+            break;
+          }
+        }
+      }
+      if (exists) {
+        rowIds.push(rowIdentifier);
+      }
+    }
+    if (limit) {
+      rowIds = rowIds.slice(start, start + limit);
+    } else if (start) {
+      rowIds = rowIds.slice(start);
+    }
+
+    return rowIds;
+  }
+
+  /**
+   * Select rows in a table by a function, returns the ROW_IDENTIFIERs of matches.
+   * @param {string} tableName - The name of the table to query.
+   * @param {storageUpdateCallbackFilter} queryFunction - The function to use for filtering rows.
+   * @param {number} [limit] - The maximum number of rows to return.
+   * @param {number} [start] - The starting index of the rows to return.
+   * @returns {string[]} Array of ROW_IDENTIFIERs matching the query.
+   * @private
+   */
+  function queryByFunction(
+    tableName: string,
+    queryFunction: storageUpdateCallbackFilter,
+    limit?: number,
+    start?: number
+  ): string[] {
+    let rowIds: string[] = [];
+    let row = null;
+
+    // loop through all the records in the table, looking for matches
+    for (const rowIdentifier in storageInstance.data[tableName]) {
+      if (!storageInstance.data[tableName].hasOwnProperty(rowIdentifier)) {
+        continue;
+      }
+
+      row = storageInstance.data[tableName][rowIdentifier];
+
+      if (queryFunction(clone(row)) === true) {
+        // it's a match if the supplied conditional function is satisfied
+        rowIds.push(rowIdentifier);
+      }
+    }
+    if (limit) {
+      rowIds = rowIds.slice(start, start + limit);
+    } else if (start) {
+      rowIds = rowIds.slice(start);
+    }
+    return rowIds;
+  }
+
   // --------- public storage database functions
 
   /**
@@ -149,7 +448,7 @@ function clientStore(storeName: string, storageEngine?: Storage) {
    */
   function getItem(key: string): string | null {
     try {
-      return storage.storage[key];
+      return storage[key];
     } catch (e) {
       return null;
     }
@@ -321,7 +620,10 @@ function clientStore(storeName: string, storageEngine?: Storage) {
    * @param {ClientStorageDataFields} data - The data to insert
    * @returns {string|null} The ROW_IDENTIFIER of the inserted row, or null if insertion failed
    */
-  function insert(tableName: string, data: ClientStorageDataFields): string | null {
+  function insert(
+    tableName: string,
+    data: ClientStorageDataFields
+  ): string | null {
     tableMissingThrowError(tableName);
     data = validateData(tableName, data);
     if (!data) {
@@ -347,73 +649,35 @@ function clientStore(storeName: string, storageEngine?: Storage) {
    */
   function query(
     tableName: string,
-    ids: string[],
+    queryParam?:
+      | string[]
+      | ClientStorageDataFields
+      | storageUpdateCallbackFilter,
     start?: number,
     limit?: number,
     sort?: ClientStorageSortDirection[],
     distinct?: string[]
   ): ClientStorageFields[] {
     tableMissingThrowError(tableName);
-    let rowIdentifier = null,
-      row = null,
-      results: ClientStorageFields[] = [];
 
-    for (let i = 0; i < ids.length; i++) {
-      rowIdentifier = ids[i];
-      row = storageInstance.data[tableName][rowIdentifier];
-      results.push(clone(row));
-    }
-
-    // there are sorting params
-    if (sort && sort instanceof Array) {
-      for (let i = 0; i < sort.length; i++) {
-        results.sort(
-          sortResults(sort[i][0], sort[i].length > 1 ? sort[i][1] : null)
-        );
-      }
-    }
-
-    // distinct params
-    if (distinct && distinct instanceof Array) {
-      for (let j = 0; j < distinct.length; j++) {
-        const seen: { [key: string]: number } = {};
-        const d = distinct[j];
-
-        for (let i = 0; i < results.length; i++) {
-          if (results[i] === undefined) {
-            continue;
-          }
-
-          if (
-            results[i].hasOwnProperty(d) &&
-            seen.hasOwnProperty(results[i][d])
-          ) {
-            delete results[i];
-          } else {
-            seen[results[i][d]] = 1;
-          }
-        }
-      }
-
-      // Filter out undefined values
-      results = results.filter(
-        (item): item is ClientStorageFields => item !== undefined
+    let rowIdentifiers: string[] = [];
+    if (!queryParam) {
+      rowIdentifiers = getRowIdentifiers(tableName); // no conditions given, return all records
+    } else if (Array.isArray(queryParam)) {
+      // If queryParam is an array of IDs, use it directly
+      rowIdentifiers = queryParam;
+    } else if (typeof queryParam === "object") {
+      // the query has key-value pairs provided
+      rowIdentifiers = queryByValues(
+        tableName,
+        validFields(tableName, queryParam as ClientStorageDataFields)
       );
+    } else if (typeof queryParam === "function") {
+      // the query is a function
+      rowIdentifiers = queryByFunction(tableName, queryParam);
     }
 
-    // limit and offset
-    start = start && typeof start === "number" ? start : null;
-    limit = limit && typeof limit === "number" ? limit : null;
-
-    if (start && limit) {
-      results = results.slice(start, start + limit);
-    } else if (start) {
-      results = results.slice(start);
-    } else if (limit) {
-      results = results.slice(start, limit);
-    }
-
-    return results;
+    return select(tableName, rowIdentifiers, start, limit, sort, distinct);
   }
 
   /**
@@ -441,138 +705,7 @@ function clientStore(storeName: string, storageEngine?: Storage) {
     };
   }
 
-  /**
-   * Select rows in a table by field-value pairs, returns the ROW_IDENTIFIERs of matches
-   * @param {string} tableName - The name of the table
-   * @param {ClientStorageDataFields} data - Object with field-value pairs to match
-   * @param {number} [limit] - The maximum number of rows to be returned
-   * @param {number} [start] - The number of rows to skip from the beginning (offset)
-   * @returns {string[]} Array of ROW_IDENTIFIERs matching the query
-   */
-  function queryByValues(
-    tableName: string,
-    data: ClientStorageDataFields,
-    limit?: number,
-    start?: number
-  ): string[] {
-    let resultIds: string[] = [];
-    let exists = false;
-    let row = null;
-
-    // loop through all the records in the table, looking for matches
-    for (const rowIdentifier in storageInstance.data[tableName]) {
-      if (!storageInstance.data[tableName].hasOwnProperty(rowIdentifier)) {
-        continue;
-      }
-
-      row = storageInstance.data[tableName][rowIdentifier];
-      exists = true;
-
-      for (const field in data) {
-        if (!data.hasOwnProperty(field)) {
-          continue;
-        }
-
-        if (typeof data[field] === "string") {
-          // if the field is a string, do a case insensitive comparison
-          if (
-            row[field] === null ||
-            row[field].toString().toLowerCase() !==
-              data[field].toString().toLowerCase()
-          ) {
-            exists = false;
-            break;
-          }
-        } else {
-          if (row[field] !== data[field]) {
-            exists = false;
-            break;
-          }
-        }
-      }
-      if (exists) {
-        resultIds.push(rowIdentifier);
-      }
-    }
-    if (limit) {
-      resultIds = resultIds.slice(start, start + limit);
-    } else if (start) {
-      resultIds = resultIds.slice(start);
-    }
-
-    return resultIds;
-  }
-
-  /**
-   * Select rows in a table by a function, returns the ROW_IDENTIFIERs of matches.
-   * @param {string} tableName - The name of the table to query.
-   * @param {storageUpdateCallbackFilter} queryFunction - The function to use for filtering rows.
-   * @param {number} [limit] - The maximum number of rows to return.
-   * @param {number} [start] - The starting index of the rows to return.
-   * @returns {string[]} Array of ROW_IDENTIFIERs matching the query.
-   * @private
-   */
-  function queryByFunction(
-    tableName: string,
-    queryFunction: storageUpdateCallbackFilter,
-    limit?: number,
-    start?: number
-  ): string[] {
-    let resultIds: string[] = [];
-    let row = null;
-
-    // loop through all the records in the table, looking for matches
-    for (const rowIdentifier in storageInstance.data[tableName]) {
-      if (!storageInstance.data[tableName].hasOwnProperty(rowIdentifier)) {
-        continue;
-      }
-
-      row = storageInstance.data[tableName][rowIdentifier];
-
-      if (queryFunction(clone(row)) === true) {
-        // it's a match if the supplied conditional function is satisfied
-        resultIds.push(rowIdentifier);
-      }
-    }
-    if (limit) {
-      resultIds = resultIds.slice(start, start + limit);
-    } else if (start) {
-      resultIds = resultIds.slice(start);
-    }
-    return resultIds;
-  }
-
-  /***
-   * Returns all the ROW_IDENTIFIERs in a table.
-   * @param {string} tableName - The name of the table
-   * @param {number} [limit] - The maximum number of ROW_IDENTIFIERs to return
-   * @param {number} [start] - The starting index of the ROW_IDENTIFIERs to return
-   * @returns {string[]} Array of ROW_IDENTIFIERs
-   * @private
-   */
-  function getRowIdentifiers(
-    tableName: string,
-    limit?: number,
-    start?: number
-  ): string[] {
-    tableMissingThrowError(tableName);
-    let resultIds: string[] = [];
-
-    for (const rowIdentifier in storageInstance.data[tableName]) {
-      if (storageInstance.data[tableName].hasOwnProperty(rowIdentifier)) {
-        resultIds.push(rowIdentifier);
-      }
-    }
-
-    // Apply pagination
-    start = start || 0;
-    if (limit) {
-      resultIds = resultIds.slice(start, start + limit);
-    } else if (start > 0) {
-      resultIds = resultIds.slice(start);
-    }
-    return resultIds;
-  }
+  // queryBy function removed as it duplicated queryByFunction
 
   /**
    * Deletes rows, given a list of their ROW_IDENTIFIERs in a table
@@ -678,25 +811,25 @@ function clientStore(storeName: string, storageEngine?: Storage) {
   ): string[] | null {
     tableMissingThrowError(tableName);
 
-    let resultIds: string[] = [];
+    let rowIds: string[] = [];
     if (!query) {
-      resultIds = getRowIdentifiers(tableName); // there is no query. applies to all records
+      rowIds = getRowIdentifiers(tableName); // there is no query. applies to all records
     } else if (typeof query === "object") {
       // the query has key-value pairs provided
-      resultIds = queryByValues(tableName, validFields(tableName, query));
+      rowIds = queryByValues(tableName, validFields(tableName, query));
     } else if (typeof query === "function") {
       // the query has a conditional map function provided
-      resultIds = queryByFunction(tableName, query);
+      rowIds = queryByFunction(tableName, query);
     }
 
     // no existing records matched, so insert a new row
-    if (resultIds.length === 0) {
+    if (rowIds.length === 0) {
       const insertedId = insert(tableName, validateData(tableName, data));
       // insert already commits, so no need to commit again
       return insertedId ? [insertedId] : null;
     } else {
       const ids: string[] = [];
-      update(tableName, resultIds, function (o) {
+      update(tableName, rowIds, function (o) {
         if (typeof o.ROW_IDENTIFIER === "string") {
           ids.push(o.ROW_IDENTIFIER);
         }
@@ -762,7 +895,10 @@ function clientStore(storeName: string, storageEngine?: Storage) {
    * @param data - The data to validate.
    * @returns The validated data.
    */
-  function validFields(tableName: string, data: ClientStorageDataFields): ClientStorageDataFields {
+  function validFields(
+    tableName: string,
+    data: ClientStorageDataFields
+  ): ClientStorageDataFields {
     let field = "";
     const newData: ClientStorageDataFields = {};
 
@@ -795,7 +931,10 @@ function clientStore(storeName: string, storageEngine?: Storage) {
 
    * ```
   */
-  function validateData(tableName: string, data: ClientStorageDataFields): ClientStorageDataFields {
+  function validateData(
+    tableName: string,
+    data: ClientStorageDataFields
+  ): ClientStorageDataFields {
     let field = "";
     const newData: ClientStorageDataFields = {};
     for (let i = 0; i < storageInstance.tables[tableName].fields.length; i++) {

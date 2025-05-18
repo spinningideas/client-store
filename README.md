@@ -1,6 +1,6 @@
 # client-store
 
-A simple client-side data storage library implemented using localStorage or sessionStorage. clientStore provides a set of functions to store structured data like a database containing tables and supporting queries and standard CRUD operations for data. It provides basic insert/update/delete/query capabilities with no dependencies. The structured data is stored as serialized JSON in localStorage or sessionStorage.
+A simple data storage library that works in both browser and Node.js environments. In browsers, it uses localStorage or sessionStorage, while in Node.js it provides a compatible in-memory implementation. clientStore provides a set of functions to store structured data like a database containing tables and supporting queries and standard CRUD operations for data. It provides basic insert/update/delete/query capabilities with no dependencies. The structured data is stored as serialized JSON in the selected storage engine.
 
 - Inspired by localStorageDB by Kailash Nadh (https://github.com/knadh/localStorageDB) but updated to modern JavaScript standards and TypeScript support.
 
@@ -20,11 +20,19 @@ See testing section below in the README for more information on running tests.
 
 `npm run test`
 
-# Supported Browsers
+# Supported Environments
 
-Browsers need to support "Local Storage" and "Session Storage" in order for clientStore to function.
+## Browsers
+
+Browsers need to support "Local Storage" and "Session Storage" in order for clientStore to function in browser environments.
+
+## Node.js
+
+In Node.js environments, the library provides a compatible in-memory storage implementation by default via global.clientStoreMemoryStorage, or you can use a third-party storage implementation like `sessionstorage-for-nodejs`.
 
 # Usage / Examples
+
+## Browser Environment
 
 ### Creating a database, table, and populating the table
 
@@ -299,6 +307,101 @@ console.log(result2 ? `Updated ${result2.length} rows` : "Inserted new row");
 moviesStore.commit();
 ```
 
+## Node.js Environment
+
+### Using the built-in in-memory storage
+
+```javascript
+// Import the clientStore module
+const clientStore = require("@spinningideas/client-store").default;
+
+// Initialize with default in-memory storage (no second parameter needed)
+const userStore = clientStore("users");
+
+// Create a table and add data
+userStore.createTable("users", ["id", "name", "email", "active"]);
+
+userStore.insert("users", {
+  id: 1,
+  name: "John Doe",
+  email: "john@example.com",
+  active: true,
+});
+
+userStore.insert("users", {
+  id: 2,
+  name: "Jane Smith",
+  email: "jane@example.com",
+  active: true,
+});
+
+// Commit changes to the in-memory storage
+userStore.commit();
+
+// Query the data
+const activeUsers = userStore.query("users", { query: { active: true } });
+console.log(activeUsers);
+```
+
+### Using a third-party storage implementation
+
+```javascript
+// Import the clientStore module and a third-party storage implementation
+const clientStore = require("@spinningideas/client-store").default;
+const sessionStorage = require("sessionstorage-for-nodejs");
+
+// Initialize with the third-party storage implementation
+const configStore = clientStore("app-config", sessionStorage);
+
+// Create a table and add data
+configStore.createTable("settings", ["key", "value", "description"]);
+
+configStore.insert("settings", {
+  key: "theme",
+  value: "dark",
+  description: "UI theme preference",
+});
+
+configStore.insert("settings", {
+  key: "notifications",
+  value: "enabled",
+  description: "Notification settings",
+});
+
+// Commit changes
+configStore.commit();
+
+// Query the data
+const themeSettings = configStore.query("settings", {
+  query: { key: "theme" },
+});
+console.log(themeSettings);
+```
+
+### Using the ClientStorage class directly
+
+```javascript
+// Import the clientStore module and ClientStorage class
+const {
+  default: clientStore,
+  ClientStorage,
+} = require("@spinningideas/client-store");
+
+// Create a custom storage implementation
+const myCustomStorage = new ClientStorage();
+
+// Initialize with the custom storage
+const dataStore = clientStore("custom-data", myCustomStorage);
+
+// Use the store as normal
+dataStore.createTable("items", ["id", "name", "category"]);
+dataStore.insert("items", { id: 1, name: "Item 1", category: "A" });
+dataStore.commit();
+
+const items = dataStore.query("items");
+console.log(items);
+```
+
 ### Deleting Data
 
 ```javascript
@@ -332,11 +435,14 @@ moviesStore.commit();
 			<td>clientStore()</td>
 			<td>storeName, storageEngine</td>
 			<td>Constructor<br />
-				A simple client side data storage library implemented using localStorage or sessionStorage depending on the desired storage engine.<br />
+				A data storage library that works in both browser and Node.js environments.<br />
 				clientStore provides a set of functions to store structured data like a database containing tables and rows of data in a tabular format.<br />
 				It supports query operations and standard CRUD operations.<br />
 				- storeName: The name of the storage database.<br />
-				- storageEngine: The storage engine to use (localStorage or sessionStorage). Defaults to localStorage.
+				- storageEngine: The storage engine to use. Options include:<br />
+				  • In browsers: localStorage or sessionStorage (defaults to localStorage)<br />
+				  • In Node.js: Any object implementing the ClientStorage interface (getItem, setItem, removeItem, etc.)<br />
+				  • If not provided in Node.js, an in-memory storage implementation is used automatically
 			</td>
 		</tr>
 		<tr>
@@ -634,6 +740,6 @@ When adding new functionality to the library, please ensure you add correspondin
 
 ## Pre-requisites
 
-```npm pack```
-```npm version minor```
-```npm publish```
+`npm pack`
+`npm version minor`
+`npm publish`

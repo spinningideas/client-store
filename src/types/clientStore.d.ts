@@ -264,13 +264,15 @@ export {};
 /**
  * A simple client side data storage library implemented using localStorage or sessionStorage.
  * clientStore provides a set of functions to store structured data like a database containing tables and rows of data in a tabular format.
- * It supports query operations and standard CRUD operations.
+ * It supports query operations and standard CRUD operations in both browser and Node.js environments.
  * 
  * @param {string} storeName - The name of the storage database.
- * @param {Storage} [storageEngine] - The storage engine to use (localStorage or sessionStorage). Defaults to localStorage.
+ * @param {any} [storageEngine] - The storage engine to use. In browser environments, this can be localStorage or sessionStorage.
+ *                               In Node.js environments, this can be any object that implements the Storage interface (getItem, setItem, removeItem).
+ *                               Defaults to localStorage in browser environments or an in-memory storage in Node.js environments.
  * @returns {clientStore} A clientStore instance with methods for working with the storage database.
  */
-declare function clientStore(storeName: string, storageEngine?: Storage): clientStore;
+declare function clientStore(storeName: string, storageEngine?: any): clientStore;
 
 // Export the factory function as default
 export default clientStore;

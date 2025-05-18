@@ -29,7 +29,24 @@ export class localStorageDB {
     this.db_new = false;
     this.db = null;
 
-    this.storage = window.localStorage;
+    // Handle both browser and Node.js environments
+    if (typeof window !== 'undefined') {
+      this.storage = window.localStorage;
+    } else {
+      // In Node.js environment, use a fallback in-memory storage
+      if (!global.clientStoreMemoryStorage) {
+        global.clientStoreMemoryStorage = {};
+      }
+      this.storage = {
+        getItem: (key) => global.clientStoreMemoryStorage[key] || null,
+        setItem: (key, value) => {
+          global.clientStoreMemoryStorage[key] = value;
+        },
+        removeItem: (key) => {
+          delete global.clientStoreMemoryStorage[key];
+        }
+      };
+    }
 
     // if the database doesn't exist, create it
     this.db = this.storage[this.db_id];
