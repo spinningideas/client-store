@@ -1,0 +1,30 @@
+# Source files
+src/
+tests/
+cypress/
+cypress.config.ts
+
+# Configuration files
+tsconfig*.json
+.nycrc
+.gitignore
+
+# Development files
+node_modules/
+coverage/
+.git/
+
+# CI/CD files
+.github/
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

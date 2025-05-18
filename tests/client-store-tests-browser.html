@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Client Store Standalone Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+    .test-section {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    .test-controls {
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 8px 16px;
+      margin-right: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      overflow: auto;
+    }
+    .success {
+      color: green;
+      font-weight: bold;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Client Store Standalone Test</h1>
+    
+    <div class="test-section">
+      <h2>About</h2>
+      <p>This page demonstrates the basic functionality of the client-store library without using any testing frameworks.</p>
+      <p>Each test will run independently and show its results below.</p>
+    </div>
+    
+    <div class="test-controls">
+      <button onclick="runAllTests()">Run All Tests</button>
+      <button onclick="clearResults()">Clear Results</button>
+      <button onclick="clearStorage()">Clear Storage</button>
+    </div>
+    
+    <div id="results">
+      <h2>Test Results:</h2>
+      <pre id="output"></pre>
+    </div>
+  </div>
+  
+  <!-- Load the client-store library -->
+  <script>
+    // Global variable for the clientStore function
+    let clientStoreFunc;
+    
+    // Function to load the client-store library
+    function loadScript(url, callback) {
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = url;
+      script.onload = callback;
+      document.head.appendChild(script);
+    }
+    
+    // Load the client-store library
+    loadScript('../dist/cjs/clientStore.js', function() {
+      console.log('Client Store library loaded');
+      document.getElementById('output').textContent = 'Client Store library loaded. Ready to run tests.\n';
+      
+      // Set the global clientStoreFunc
+      if (typeof clientStore === 'function') {
+        clientStoreFunc = clientStore;
+      } else if (typeof window.clientStore === 'object' && typeof window.clientStore.default === 'function') {
+        clientStoreFunc = window.clientStore.default;
+      } else {
+        console.error('clientStore function not found in global scope');
+        document.getElementById('output').textContent += 'ERROR: clientStore function not found. Make sure the library is properly built.\n';
+      }
+    });
+  </script>
+  
+  <script>
+    // Test functions
+    function log(message) {
+      const output = document.getElementById('output');
+      output.textContent += message + '\n';
+      console.log(message);
+    }
+    
+    function logSuccess(message) {
+      log('✅ ' + message);
+    }
+    
+    function logError(message) {
+      log('❌ ' + message);
+    }
+    
+    function clearResults() {
+      document.getElementById('output').textContent = '';
+    }
+    
+    function clearStorage() {
+      localStorage.clear();
+      log('localStorage cleared');
+    }
+    
+    function assert(condition, message) {
+      if (condition) {
+        logSuccess(message);
+        return true;
+      } else {
+        logError(message);
+        return false;
+      }
+    }
+    
+    function assertEqual(actual, expected, message) {
+      if (actual === expected) {
+        logSuccess(message + ` (${actual})`);
+        return true;
+      } else {
+        logError(`${message} - Expected: ${expected}, Got: ${actual}`);
+        return false;
+      }
+    }
+    
+    // Test: Create a store
+    function testCreateStore() {
+      log('\n--- Test: Create a store ---');
+      try {
+        const store = clientStoreFunc('test_store');
+        assert(store, 'Store created');
+        assert(store.storageHasBeenCreated(), 'Storage has been created');
+        return store;
+      } catch (error) {
+        logError(`Error creating store: ${error.message}`);
+        return null;
+      }
+    }
+    
+    // Test: Create a table
+    function testCreateTable(store) {
+      log('\n--- Test: Create a table ---');
+      try {
+        store.createTable('test_table', ['name', 'value']);
+        assert(store.tableExists('test_table'), 'Table exists');
+        assertEqual(store.tableCount(), 1, 'Table count');
+        return true;
+      } catch (error) {
+        logError(`Error creating table: ${error.message}`);
+        return false;
+      }
+    }
+    
+    // Test: Insert data
+    function testInsertData(store) {
+      log('\n--- Test: Insert data ---');
+      try {
+        const id = store.insert('test_table', { name: 'test', value: 123 });
+        assert(id, 'Data inserted with ID: ' + id);
+        assertEqual(store.rowCount('test_table'), 1, 'Row count');
+        return id;
+      } catch (error) {
+        logError(`Error inserting data: ${error.message}`);
+        return null;
+      }
+    }
+    
+    // Test: Query data
+    function testQueryData(store, id) {
+      log('\n--- Test: Query data ---');
+      try {
+        const results = store.query('test_table', [id]);
+        assert(results.length === 1, 'Query returned 1 result');
+        assertEqual(results[0].name, 'test', 'Name field');
+        assertEqual(results[0].value, 123, 'Value field');
+        return true;
+      } catch (error) {
+        logError(`Error querying data: ${error.message}`);
+        return false;
+      }
+    }
+    
+    // Test: Delete data
+    function testDeleteData(store, id) {
+      log('\n--- Test: Delete data ---');
+      try {
+        store.deleteRows('test_table', [id]);
+        assertEqual(store.rowCount('test_table'), 0, 'Row count after delete');
+        return true;
+      } catch (error) {
+        logError(`Error deleting data: ${error.message}`);
+        return false;
+      }
+    }
+    
+    // Test: Table names with restricted characters
+    function testTableNamesWithRestrictedChars(store) {
+      log('\n--- Test: Table names with restricted characters ---');
+      let allPassed = true;
+      
+      // Test with dash
+      try {
+        store.createTable('invalid-table-name', ['field1']);
+        logError('Should have thrown an error for table name with dash');
+        allPassed = false;
+      } catch (error) {
+        logSuccess('Correctly rejected table name with dash');
+      }
+      
+      // Test with space
+      try {
+        store.createTable('invalid table name', ['field1']);
+        logError('Should have thrown an error for table name with space');
+        allPassed = false;
+      } catch (error) {
+        logSuccess('Correctly rejected table name with space');
+      }
+      
+      // Test with special characters
+      try {
+        store.createTable('invalid!table@name', ['field1']);
+        logError('Should have thrown an error for table name with special characters');
+        allPassed = false;
+      } catch (error) {
+        logSuccess('Correctly rejected table name with special characters');
+      }
+      
+      return allPassed;
+    }
+    
+    // Test: Alter table
+    function testAlterTable(store) {
+      log('\n--- Test: Alter table ---');
+      try {
+        // Create a table with initial fields
+        store.createTable('alter_test', ['name']);
+        const id = store.insert('alter_test', { name: 'test item' });
+        
+        // Add a new field with a default value
+        store.alterTable('alter_test', ['status'], { status: 'active' });
+        
+        // Verify the field was added
+        const fields = store.tableFields('alter_test');
+        assert(fields.includes('status'), 'New field was added');
+        
+        // Verify the default value was applied
+        const results = store.query('alter_test', [id]);
+        assertEqual(results[0].status, 'active', 'Default value was applied');
+        
+        return true;
+      } catch (error) {
+        logError(`Error in alter table test: ${error.message}`);
+        return false;
+      }
+    }
+    
+    // Run all tests
+    function runAllTests() {
+      clearResults();
+      log('Starting tests...');
+      
+      // Check if clientStoreFunc is available
+      if (!clientStoreFunc) {
+        logError('clientStore function not available. Make sure the library is loaded.');
+        log('Available globals: ' + Object.keys(window).filter(key => key.includes('client')).join(', '));
+        return;
+      }
+      
+      // Clear localStorage before tests
+      localStorage.clear();
+      
+      // Run tests in sequence
+      const store = testCreateStore();
+      if (!store) return;
+      
+      if (!testCreateTable(store)) return;
+      
+      const id = testInsertData(store);
+      if (!id) return;
+      
+      if (!testQueryData(store, id)) return;
+      
+      testDeleteData(store, id);
+      
+      // Run additional tests
+      testTableNamesWithRestrictedChars(store);
+      
+      testAlterTable(store);
+      
+      log('\n✅ All tests completed!');
+    }
+  </script>
+</body>
+</html>

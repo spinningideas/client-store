@@ -1,0 +1,29 @@
+{
+  "extends": "@istanbuljs/nyc-config-typescript",
+  "include": [
+    "dist/cjs/clientStore.js"
+  ],
+  "exclude": [
+    "**/*.d.ts",
+    "coverage/**/*",
+    "tests/**/*",
+    "examples/**/*"
+  ],
+  "reporter": [
+    "lcov",
+    "text-summary"
+  ],
+  "extension": [
+    ".ts",
+    ".js"
+  ],
+  "require": [
+    "ts-node/register"
+  ],
+  "report-dir": "coverage",
+  "all": true,
+  "check-coverage": false,
+  "sourceMap": true,
+  "instrument": true,
+  "cache": false
+}

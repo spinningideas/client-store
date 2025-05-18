@@ -1,0 +1,96 @@
+{
+  "name": "@spinningideas/client-store",
+  "version": "0.3.0",
+  "description": "clientStore is a simple client-side storage layer over localStorage (and sessionStorage) that provides a set of functions to store structured data like a database with tables and queries. It provides basic insert/update/delete/query capabilities. This package has no dependencies, and is not based on WebSQL. Underneath it all, the structured data is stored as serialized JSON in localStorage or sessionStorage.",
+  "main": "dist/cjs/clientStore.js",
+  "module": "dist/esm/clientStore.js",
+  "types": "dist/types/clientStore.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/clientStore.js",
+      "require": "./dist/cjs/clientStore.js",
+      "types": "./dist/types/clientStore.d.ts"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "npm run clean && npm run build:cjs && npm run build:esm && npm run build:types",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:types": "tsc -p tsconfig.types.json",
+    "prepare": "npm run build && npm run test && npm run test:coverage",
+    "prepublishOnly": "npm test",
+    "preversion": "npm test",
+    "version": "npm run build && git add -A dist",
+    "postversion": "git push && git push --tags",
+    "test": "mocha tests/client-store-tests.js",
+    "test:browser": "start tests/client-store-tests-browser.html",
+    "test:coverage": "nyc --reporter=text --reporter=lcov mocha tests/client-store-tests.js",
+    "coverage:report": "start coverage/lcov-report/index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spinningideas/client-store.git"
+  },
+  "keywords": [
+    "localStorage",
+    "sessionStorage",
+    "storage",
+    "database",
+    "client side storage",
+    "client side database"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/spinningideas/client-store/issues"
+  },
+  "homepage": "https://github.com/spinningideas/client-store",
+  "devDependencies": {
+    "@babel/core": "^7.27.1",
+    "@babel/preset-env": "^7.27.2",
+    "@babel/preset-typescript": "^7.27.1",
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "@types/mocha": "^10.0.10",
+    "babel-plugin-istanbul": "^7.0.0",
+    "chai": "5.2.0",
+    "glob": "^11.0.2",
+    "istanbul-lib-coverage": "^3.2.0",
+    "mocha": "11.3.0",
+    "nyc": "^15.1.0",
+    "rimraf": "^5.0.10",
+    "source-map-support": "^0.5.21",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.8.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "nyc": {
+    "extends": "@istanbuljs/nyc-config-typescript",
+    "include": [
+      "src/**/*.ts"
+    ],
+    "exclude": [
+      "**/*.d.ts",
+      "coverage/**/*.*",
+      "tests/**/*.*",
+      "dist/**/*.*"
+    ],
+    "reporter": [
+      "html",
+      "text",
+      "text-summary"
+    ],
+    "report-dir": "coverage",
+    "all": true,
+    "check-coverage": false,
+    "sourceMap": true,
+    "instrument": true
+  }
+}

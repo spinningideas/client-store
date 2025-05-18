@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Client Store ESM Browser Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+    .example-section {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 8px 16px;
+      margin-right: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      overflow: auto;
+    }
+    .success {
+      color: green;
+      font-weight: bold;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Client Store ESM Browser Example</h1>
+    
+    <div class="example-section">
+      <h2>About</h2>
+      <p>This example demonstrates how to use the client-store library in a browser using ES modules.</p>
+      <p>The client-store library provides a simple client-side storage layer over localStorage that works like a database with tables and queries.</p>
+    </div>
+    
+    <div class="example-section">
+      <h2>Demo</h2>
+      <div>
+        <button id="createTableBtn">Create Table</button>
+        <button id="insertDataBtn">Insert Data</button>
+        <button id="queryDataBtn">Query Data</button>
+        <button id="updateDataBtn">Update Data</button>
+        <button id="deleteDataBtn">Delete Data</button>
+        <button id="clearStorageBtn">Clear Storage</button>
+      </div>
+      <h3>Results:</h3>
+      <pre id="output"></pre>
+    </div>
+  </div>
+  
+  <!-- Use ES modules directly -->
+  <script type="module">
+    // Import the clientStore from the ESM build
+    import clientStore from '../dist/esm/clientStore.js';
+    
+    // Create a store instance
+    const store = clientStore('demo_store');
+    
+    // Function to log output
+    function log(message) {
+      const output = document.getElementById('output');
+      output.textContent += message + '\n';
+      console.log(message);
+    }
+    
+    // Function to clear output
+    function clearOutput() {
+      document.getElementById('output').textContent = '';
+    }
+    
+    // Initialize the demo
+    function init() {
+      clearOutput();
+      log('Client Store ESM Example Initialized');
+      log(`Storage exists: ${store.storageHasBeenCreated()}`);
+      
+      // Set up button event listeners
+      document.getElementById('createTableBtn').addEventListener('click', createTable);
+      document.getElementById('insertDataBtn').addEventListener('click', insertData);
+      document.getElementById('queryDataBtn').addEventListener('click', queryData);
+      document.getElementById('updateDataBtn').addEventListener('click', updateData);
+      document.getElementById('deleteDataBtn').addEventListener('click', deleteData);
+      document.getElementById('clearStorageBtn').addEventListener('click', clearStorage);
+    }
+    
+    // Create a table
+    function createTable() {
+      clearOutput();
+      try {
+        // Check if table already exists
+        if (store.tableExists('products')) {
+          log('Table "products" already exists');
+          return;
+        }
+        
+        // Create the table with fields
+        store.createTable('products', ['name', 'price', 'category', 'inStock']);
+        log('Table "products" created successfully');
+        log(`Table exists: ${store.tableExists('products')}`);
+        log(`Table fields: ${store.tableFields('products').join(', ')}`);
+      } catch (error) {
+        log(`Error creating table: ${error.message}`);
+      }
+    }
+    
+    // Insert data
+    function insertData() {
+      clearOutput();
+      try {
+        // Check if table exists
+        if (!store.tableExists('products')) {
+          log('Please create the table first');
+          return;
+        }
+        
+        // Insert some products
+        const products = [
+          { name: 'Laptop', price: 999.99, category: 'Electronics', inStock: true },
+          { name: 'Headphones', price: 149.99, category: 'Electronics', inStock: true },
+          { name: 'Coffee Mug', price: 12.99, category: 'Kitchen', inStock: true },
+          { name: 'Book', price: 24.99, category: 'Books', inStock: false }
+        ];
+        
+        const ids = [];
+        for (const product of products) {
+          const id = store.insert('products', product);
+          ids.push(id);
+          log(`Inserted product "${product.name}" with ID: ${id}`);
+        }
+        
+        log(`Total products: ${store.rowCount('products')}`);
+      } catch (error) {
+        log(`Error inserting data: ${error.message}`);
+      }
+    }
+    
+    // Query data
+    function queryData() {
+      clearOutput();
+      try {
+        // Check if table exists
+        if (!store.tableExists('products')) {
+          log('Please create the table first');
+          return;
+        }
+        
+        // Query all products
+        const allProducts = store.query('products');
+        log(`Found ${allProducts.length} products:`);
+        
+        // Display each product
+        allProducts.forEach((product, index) => {
+          log(`${index + 1}. ${product.name} - $${product.price} (${product.category}) - ${product.inStock ? 'In Stock' : 'Out of Stock'}`);
+        });
+      } catch (error) {
+        log(`Error querying data: ${error.message}`);
+      }
+    }
+    
+    // Update data
+    function updateData() {
+      clearOutput();
+      try {
+        // Check if table exists
+        if (!store.tableExists('products')) {
+          log('Please create the table first');
+          return;
+        }
+        
+        // Find products to update (all electronics)
+        const products = store.query('products');
+        const electronicsIds = products
+          .filter(product => product.category === 'Electronics')
+          .map(product => product.ROW_IDENTIFIER);
+        
+        if (electronicsIds.length === 0) {
+          log('No electronics products found to update');
+          return;
+        }
+        
+        // Apply 10% discount to all electronics
+        const updatedCount = store.update('products', electronicsIds, (product) => {
+          const newPrice = Math.round(product.price * 0.9 * 100) / 100; // 10% discount, rounded to 2 decimal places
+          return { price: newPrice };
+        });
+        
+        log(`Updated ${updatedCount} products with 10% discount`);
+        
+        // Show the updated products
+        const updatedProducts = store.query('products', electronicsIds);
+        updatedProducts.forEach(product => {
+          log(`Updated: ${product.name} - New price: $${product.price}`);
+        });
+      } catch (error) {
+        log(`Error updating data: ${error.message}`);
+      }
+    }
+    
+    // Delete data
+    function deleteData() {
+      clearOutput();
+      try {
+        // Check if table exists
+        if (!store.tableExists('products')) {
+          log('Please create the table first');
+          return;
+        }
+        
+        // Find out-of-stock products
+        const products = store.query('products');
+        const outOfStockIds = products
+          .filter(product => !product.inStock)
+          .map(product => product.ROW_IDENTIFIER);
+        
+        if (outOfStockIds.length === 0) {
+          log('No out-of-stock products found to delete');
+          return;
+        }
+        
+        // Delete out-of-stock products
+        store.deleteRows('products', outOfStockIds);
+        log(`Deleted ${outOfStockIds.length} out-of-stock products`);
+        log(`Remaining products: ${store.rowCount('products')}`);
+      } catch (error) {
+        log(`Error deleting data: ${error.message}`);
+      }
+    }
+    
+    // Clear storage
+    function clearStorage() {
+      clearOutput();
+      try {
+        localStorage.clear();
+        log('Storage cleared');
+        log('Refreshing the page to reinitialize the store...');
+        setTimeout(() => window.location.reload(), 1500);
+      } catch (error) {
+        log(`Error clearing storage: ${error.message}`);
+      }
+    }
+    
+    // Initialize the demo when the page loads
+    init();
+  </script>
+</body>
+</html>
