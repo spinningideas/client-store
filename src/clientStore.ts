@@ -90,6 +90,7 @@ function clientStore(
   const storageIdentifier = storePrefix + storeName;
   let storageExists = false; // determines whether a new storage database was created during an object initialization
   let storageInstance = null;
+  let autoCommit = true;
   // Determine the appropriate storage mechanism based on environment
   // and handle both browser and Node.js environments
   let storage: ClientStorage | typeof localStorage | typeof sessionStorage;
@@ -148,7 +149,7 @@ function clientStore(
       );
     } else {
       storageInstance = { tables: {}, data: {} };
-      commit();
+      commitToStorage(autoCommit);
       storageExists = true;
     }
   }
@@ -261,13 +262,13 @@ function clientStore(
     sort?: ClientStorageSortDirection[],
     distinct?: string[]
   ): ClientStorageFields[] {
-    let ID: string | null = null,
+    let rowId: string | null = null,
       results: ClientStorageFields[] = [],
       row: ClientStorageFields | null = null;
 
     for (let x = 0; x < ids.length; x++) {
-      ID = ids[x];
-      row = storageInstance.data[tableName][ID];
+      rowId = ids[x];
+      row = storageInstance.data[tableName][rowId];
       results.push(clone(row));
     }
 
@@ -430,6 +431,25 @@ function clientStore(
     return rowIds;
   }
 
+  /**
+   * Commits the storage database to localStorage.
+   * Critical operation that actually persists the storage database
+   * to localStorage or the configured storage.
+   * @description Saves the current state of the storage database to localStorage.
+   * @returns {boolean} True if the commit was successful, false otherwise.
+   * @private
+   */
+  function commitToStorage(commitChange: boolean): boolean {
+    try {
+      if (commitChange === true) {
+        storage.setItem(storageIdentifier, JSON.stringify(storageInstance));
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   // --------- public storage database functions
 
   /**
@@ -570,7 +590,7 @@ function clientStore(
     }
     storageInstance.tables[tableName] = { fields: fields };
     storageInstance.data[tableName] = {};
-    commit();
+    commitToStorage(autoCommit);
   }
 
   // drop a table
@@ -578,14 +598,14 @@ function clientStore(
     tableMissingThrowError(tableName);
     delete storageInstance.tables[tableName];
     delete storageInstance.data[tableName];
-    commit();
+    commitToStorage(autoCommit);
   }
 
   // empty a table
   function truncate(tableName: string): void {
     tableMissingThrowError(tableName);
     storageInstance.data[tableName] = {};
-    commit();
+    commitToStorage(autoCommit);
   }
 
   // create a table using array of Objects @ [{k:v,k:v},{k:v,k:v},etc]
@@ -616,7 +636,7 @@ function clientStore(
           );
         }
       }
-      commit();
+      commitToStorage(autoCommit);
     }
     return true;
   }
@@ -654,7 +674,7 @@ function clientStore(
         }
       }
     }
-    commit();
+    commitToStorage(autoCommit);
   }
 
   /**
@@ -692,7 +712,7 @@ function clientStore(
     const rowIdentifier = generateId();
     data.ROW_IDENTIFIER = rowIdentifier;
     storageInstance.data[tableName][rowIdentifier] = data;
-    commit();
+    commitToStorage(autoCommit);
     return rowIdentifier;
   }
 
@@ -740,7 +760,7 @@ function clientStore(
   }
 
   /**
-   * Select rows given a params object that is a where clause of the query. 
+   * Select rows given a params object that is a where clause of the query.
    * If no params are provided, all rows are returned.
    * @param {string} tableName - The name of the table
    * @param {string[]|ClientStorageDataFields|storageUpdateCallbackFilter} params - The list of fields use in the select
@@ -771,7 +791,7 @@ function clientStore(
     }
 
     if (deletedCount > 0) {
-      commit();
+      commitToStorage(autoCommit);
     }
 
     return deletedCount;
@@ -819,7 +839,7 @@ function clientStore(
     }
 
     if (num > 0) {
-      commit();
+      commitToStorage(autoCommit);
     }
     return num;
   }
@@ -890,10 +910,19 @@ function clientStore(
    * Commits the storage database to localStorage.
    * @description Saves the current state of the storage database to localStorage.
    * @returns {boolean} True if the commit was successful, false otherwise.
+   * @deprecated Auto commit is now enabled. You no longer need to call commit() to persist changes to storage.
    */
-  function commit(): boolean {
+  function commit(autoCommitEnabled: boolean = false): boolean {
     try {
-      storage.setItem(storageIdentifier, JSON.stringify(storageInstance));
+      if (autoCommitEnabled) {
+        commitToStorage(autoCommitEnabled);
+        autoCommit = true;
+      } else {
+        autoCommit = false;
+        console.warn(
+          "commit is deprecated. Auto commit is now enabled by default. You no longer need to call commit() to persist changes to storage."
+        );
+      }
       return true;
     } catch (e) {
       return false;
@@ -910,9 +939,9 @@ function clientStore(
   }
 
   /**
-   * Clones an object.
-   * @param obj - The object to clone.
-   * @returns The cloned object.
+   * Clones an object into a new row of data to return to the caller.
+   * @param obj - The object that is a row of data to clone.
+   * @returns The cloned object that is a row of data.
    */
   function clone<T extends ClientStorageFields>(obj: T): T {
     const new_obj = {} as T;
@@ -938,8 +967,8 @@ function clientStore(
    * fields that are defined in a table's schema
    * are included in data operations
    * @param tableName - The name of the table.
-   * @param data - The data to validate.
-   * @returns The validated data.
+   * @param data - The data to validate that may have additional fields NOT defined in the table schema.
+   * @returns Only dataset containing ONLY data for the valid fields for given table name
    */
   function validFields(
     tableName: string,
@@ -947,13 +976,11 @@ function clientStore(
   ): ClientStorageDataFields {
     let field = "";
     const newData: ClientStorageDataFields = {};
-
-    for (field in data) {
-      const index = storageInstance.tables[tableName].fields.indexOf(field);
-      if (index === -1) {
-        handleError("Invalid query parameter: " + field);
+    for (let i = 0; i < storageInstance.tables[tableName].fields.length; i++) {
+      field = storageInstance.tables[tableName].fields[i];
+      if (data[field] !== undefined) {
+        newData[field] = data[field];
       }
-      newData[field] = data[field];
     }
     return newData;
   }

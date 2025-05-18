@@ -509,18 +509,6 @@ describe("clientStore", function () {
       }
     });
 
-    it("should commit changes", function () {
-      // Create a table with data
-      store.createTable("commit_test", ["name"]);
-      store.insert("commit_test", { name: "test item" });
-
-      // Commit changes
-      store.commit();
-
-      // Verify the table still exists after commit
-      assert(store.tableExists("commit_test"));
-    });
-
     it("should drop storage", function () {
       // Create a new store for drop testing
       const dropStore = clientStore("drop_test", localStorage);

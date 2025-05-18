@@ -1,0 +1,7 @@
+{
+  "mochaExplorer.files": "tests/**/*.js",
+  "mochaExplorer.require": "ts-node/register",
+  "mochaExplorer.timeout": 5000,
+  "mochaExplorer.ui": "bdd",
+  "mochaExplorer.cwd": "${workspaceFolder}"
+}
