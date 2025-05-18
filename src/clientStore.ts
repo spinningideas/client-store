@@ -94,10 +94,28 @@ function clientStore(storeName: string, storageEngine?: Storage) {
   }
 
   // --------- storage database functions
+
+  /**
+   * Returns the entire storage database as serialized JSON.
+   * @description Retrieves the current state of the storage database as a JSON string.
+   * @returns {string} The serialized storage database.
+   */
+  function exportStorage(): string {
+    return JSON.stringify(storageInstance);
+  }
+
+  /**
+   * Import and replace entire contents of localStorage storage database with passed in json
+   * @param {string} data - The JSON data to replace the storage database with
+   */
+  function importStorage(data: string): void {
+    setItem(storageIdentifier, data);
+  }
+
   /**
    * Deletes a storage database, and purges it from localStorage
    */
-  function drop(): void {
+  function dropStorage(): void {
     if (storage.hasOwnProperty(storageIdentifier)) {
       delete storage[storageIdentifier];
     }
@@ -115,14 +133,6 @@ function clientStore(storeName: string, storageEngine?: Storage) {
     } catch (e) {
       return null;
     }
-  }
-
-  /**
-   * Replace entire contents of localStorage storage database with passed in json
-   * @param {string} data - The JSON data to replace the storage database with
-   */
-  function replace(data: string): void {
-    setItem(storageIdentifier, data);
   }
 
   /**
@@ -645,15 +655,6 @@ function clientStore(storeName: string, storageEngine?: Storage) {
     }
   }
 
-  /**
-   * Returns the entire storage database as serialized JSON.
-   * @description Retrieves the current state of the storage database as a JSON string.
-   * @returns {string} The serialized storage database.
-   */
-  function serialize(): string {
-    return JSON.stringify(storageInstance);
-  }
-
   // throw an error
   function handleError(msg: string): never {
     throw new Error(msg);
@@ -704,14 +705,9 @@ function clientStore(storeName: string, storageEngine?: Storage) {
 
   // --------- public methods
   return {
-    storageExists,
-    drop,
-    getItem,
-    replace,
-    setItem,
-    tableCount,
-    commit,
-    serialize,
+    importStorage,
+    exportStorage,
+    dropStorage,
     tableExists,
     tableFields,
     createTable,
@@ -719,6 +715,10 @@ function clientStore(storeName: string, storageEngine?: Storage) {
     dropTable,
     truncate,
     columnExists,
+    commit, 
+    getItem,
+    setItem,
+    tableCount,
     rowCount,
     query,
     insert,
