@@ -96,6 +96,14 @@ function clientStore(storeName: string, storageEngine?: Storage) {
   // --------- storage database functions
 
   /**
+   * Returns true if the storage database has been created, false otherwise.
+   * @returns {boolean} True if the storage database has been created, false otherwise.
+   */
+  const storageHasBeenCreated = (): boolean => {
+    return storageExists;
+  };
+
+  /**
    * Returns the entire storage database as serialized JSON.
    * @description Retrieves the current state of the storage database as a JSON string.
    * @returns {string} The serialized storage database.
@@ -655,12 +663,20 @@ function clientStore(storeName: string, storageEngine?: Storage) {
     }
   }
 
-  // throw an error
+  /**
+   * Provides central error handling. Throws an error with the given message.
+   * @param msg - The error message.
+   * @returns Never returns.
+   */
   function handleError(msg: string): never {
     throw new Error(msg);
   }
 
-  // clone an object
+  /**
+   * Clones an object.
+   * @param obj - The object to clone.
+   * @returns The cloned object.
+   */
   function clone<T extends staticFields>(obj: T): T {
     const new_obj = {} as T;
     for (const key in obj) {
@@ -671,12 +687,23 @@ function clientStore(storeName: string, storageEngine?: Storage) {
     return new_obj;
   }
 
-  // validate storageInstance, table, field names (alpha-numeric only)
+  /**
+   * Validates a name (storageInstance, table, field names) by checking if it contains only alpha-numeric characters and underscores.
+   * @param name - The name to validate.
+   * @returns True if the name is valid, false otherwise.
+   */
   function validateName(name: string): boolean {
     return name.toString().match(/[^a-z_0-9]/gi) ? false : true;
   }
 
-  // given a data list, only retain valid fields in a table
+  /**
+   * Provides a validation mechanism to ensure that only
+   * fields that are defined in a table's schema
+   * are included in data operations
+   * @param tableName - The name of the table.
+   * @param data - The data to validate.
+   * @returns The validated data.
+   */
   function validFields(tableName: string, data: dataFields): dataFields {
     let field = "";
     const newData: dataFields = {};
@@ -691,7 +718,25 @@ function clientStore(storeName: string, storageEngine?: Storage) {
     return newData;
   }
 
-  // given a data list, populate with valid field names of a table
+  /** 
+   * Ensures that data being inserted into a table contains 
+   * all the required (validated) fields defined for that table.
+   *  
+   * @param tableName - The name of the table.
+   * @param data - The data to validate.
+   * @returns The validated data.
+   * 
+   * @example
+   * ```
+   * // Original data
+  const data = { name: "John" };
+
+  // After validateData
+  const validatedData = validateData("users", data);
+  // validatedData = { name: "John", email: null, age: null }
+
+   * ```
+  */
   function validateData(tableName: string, data: dataFields): dataFields {
     let field = "";
     const newData: dataFields = {};
@@ -705,6 +750,7 @@ function clientStore(storeName: string, storageEngine?: Storage) {
 
   // --------- public methods
   return {
+    storageHasBeenCreated,
     importStorage,
     exportStorage,
     dropStorage,
@@ -715,7 +761,7 @@ function clientStore(storeName: string, storageEngine?: Storage) {
     dropTable,
     truncate,
     columnExists,
-    commit, 
+    commit,
     getItem,
     setItem,
     tableCount,
