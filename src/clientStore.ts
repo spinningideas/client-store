@@ -90,7 +90,6 @@ function clientStore(
   const storageIdentifier = storePrefix + storeName;
   let storageExists = false; // determines whether a new storage database was created during an object initialization
   let storageInstance = null;
-  let autoCommit = true;
   // Determine the appropriate storage mechanism based on environment
   // and handle both browser and Node.js environments
   let storage: ClientStorage | typeof localStorage | typeof sessionStorage;
@@ -149,7 +148,7 @@ function clientStore(
       );
     } else {
       storageInstance = { tables: {}, data: {} };
-      commitToStorage(autoCommit);
+      commitToStorage();
       storageExists = true;
     }
   }
@@ -439,11 +438,9 @@ function clientStore(
    * @returns {boolean} True if the commit was successful, false otherwise.
    * @private
    */
-  function commitToStorage(commitChange: boolean): boolean {
+  function commitToStorage(): boolean {
     try {
-      if (commitChange === true) {
-        storage.setItem(storageIdentifier, JSON.stringify(storageInstance));
-      }
+      storage.setItem(storageIdentifier, JSON.stringify(storageInstance));
       return true;
     } catch (e) {
       return false;
@@ -590,7 +587,7 @@ function clientStore(
     }
     storageInstance.tables[tableName] = { fields: fields };
     storageInstance.data[tableName] = {};
-    commitToStorage(autoCommit);
+    commitToStorage();
   }
 
   // drop a table
@@ -598,14 +595,14 @@ function clientStore(
     tableMissingThrowError(tableName);
     delete storageInstance.tables[tableName];
     delete storageInstance.data[tableName];
-    commitToStorage(autoCommit);
+    commitToStorage();
   }
 
   // empty a table
   function truncate(tableName: string): void {
     tableMissingThrowError(tableName);
     storageInstance.data[tableName] = {};
-    commitToStorage(autoCommit);
+    commitToStorage();
   }
 
   // create a table using array of Objects @ [{k:v,k:v},{k:v,k:v},etc]
@@ -636,7 +633,7 @@ function clientStore(
           );
         }
       }
-      commitToStorage(autoCommit);
+      commitToStorage();
     }
     return true;
   }
@@ -674,7 +671,7 @@ function clientStore(
         }
       }
     }
-    commitToStorage(autoCommit);
+    commitToStorage();
   }
 
   /**
@@ -712,7 +709,7 @@ function clientStore(
     const rowIdentifier = generateId();
     data.ROW_IDENTIFIER = rowIdentifier;
     storageInstance.data[tableName][rowIdentifier] = data;
-    commitToStorage(autoCommit);
+    commitToStorage();
     return rowIdentifier;
   }
 
@@ -791,7 +788,7 @@ function clientStore(
     }
 
     if (deletedCount > 0) {
-      commitToStorage(autoCommit);
+      commitToStorage();
     }
 
     return deletedCount;
@@ -839,7 +836,7 @@ function clientStore(
     }
 
     if (num > 0) {
-      commitToStorage(autoCommit);
+      commitToStorage();
     }
     return num;
   }
@@ -912,13 +909,11 @@ function clientStore(
    * @returns {boolean} True if the commit was successful, false otherwise.
    * @deprecated Auto commit is now enabled. You no longer need to call commit() to persist changes to storage.
    */
-  function commit(autoCommitEnabled: boolean = false): boolean {
+  function commit(autoCommitEnabled: boolean = true): boolean {
     try {
       if (autoCommitEnabled) {
-        commitToStorage(autoCommitEnabled);
-        autoCommit = true;
+        commitToStorage();
       } else {
-        autoCommit = false;
         console.warn(
           "commit is deprecated. Auto commit is now enabled by default. You no longer need to call commit() to persist changes to storage."
         );
