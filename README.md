@@ -82,8 +82,8 @@ In Node.js environments, the library provides a compatible in-memory storage imp
 // Initialize. If the storage doesn't exist, it is created
 const moviesStore = clientStore("movies", localStorage);
 
-// Or Check if the storage exists and if not create the table then setup data. Useful for initial storage setup
-if (moviesStore.storageHasBeenCreated() === false) {
+// Or Check if the table exists and if not create the table then setup data. Useful for initial storage setup
+if (moviesStore.tableExists("movies") === false) {
   // create the "movies" table
   moviesStore.createTable("movies", [
     "episodeId",
