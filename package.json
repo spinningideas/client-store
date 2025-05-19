@@ -1,15 +1,15 @@
 {
   "name": "@spinningideas/client-store",
-  "version": "0.3.12",
+  "version": "0.3.14",
   "description": "clientStore is a simple client-side storage layer backed by localStorage (or ClientStorage compatible storage engine) that provides a set of functions to store structured data like a database with tables and queries.",
-  "main": "dist/cjs/clientStore.js",
-  "module": "dist/esm/clientStore.js",
-  "types": "dist/types/clientStore.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/esm/clientStore.js",
-      "require": "./dist/cjs/clientStore.js",
-      "types": "./dist/types/clientStore.d.ts"
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
     }
   },
   "sideEffects": false,
@@ -22,7 +22,7 @@
     "build": "npm run clean && npm run build:cjs && npm run build:esm && npm run build:types",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:esm": "tsc -p tsconfig.esm.json",
-    "build:types": "copyfiles -f src/types/clientStore.d.ts dist/types/",
+    "build:types": "copyfiles -f src/types/*.d.ts dist/types/",
     "prepare": "npm run build && npm run test && npm run test:coverage",
     "prepublishOnly": "npm test",
     "preversion": "npm test",

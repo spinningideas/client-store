@@ -27,3 +27,7 @@
 - Added remaining updates to JSDOC comments.
 - Added support for custom storage prefix via storePrefix parameter.
 
+## 0.3.14
+
+- Added localStorageDB to exports so existing projects can shift from this to clientStore more easily.
+

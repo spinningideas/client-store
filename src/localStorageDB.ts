@@ -1,5 +1,6 @@
 /*
-adapted from: https://github.com/knadh/localStorageDB
+adapted from: https://github.com/knadh/localStorageDB 
+with typescript support added by Spinning Ideas
 
 Kailash Nadh (http://nadh.in)
 
