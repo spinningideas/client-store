@@ -177,7 +177,7 @@ interface clientStore {
   /**
    * Queries data from a table.
    * @param {string} tableName - The name of the table to query.
-   * @param {ClientStorageDataFields | storageUpdateCallbackFilter | null} [query] - The query to filter the data.
+   * @param {ClientStorageDataFields | storageUpdateCallbackFilter | string[]} [query] - The query to filter the data.
    * @param {number} [limit] - The maximum number of rows to return.
    * @param {number} [start] - The starting index of the rows to return.
    * @param {ClientStorageSortDirection[]} [sort] - Array of sort conditions.
@@ -186,7 +186,7 @@ interface clientStore {
    */
   query(
     tableName: string,
-    query?: ClientStorageDataFields | storageUpdateCallbackFilter | null,
+    query?: ClientStorageDataFields | storageUpdateCallbackFilter | string[],
     limit?: number,
     start?: number,
     sort?: ClientStorageSortDirection[],
@@ -205,49 +205,28 @@ interface clientStore {
   ): ClientStorageFields[];
   
   /**
-   * Select rows given a params object that is a where clause of the query.
+   * Queries all data from a table.
    * If no params are provided, all rows are returned.
-   * @param {string} tableName - The name of the table
-   * @param {string[]|ClientStorageDataFields|storageUpdateCallbackFilter} params - The list of fields use in the select
-   * @returns {ClientStorageFields[]} Array of rows matching the query
+   * @param {string} tableName - The name of the table to query.
+   * @param {ClientStorageDataFields | storageUpdateCallbackFilter} [query] - The query to filter the data.
+   * @returns {ClientStorageFields[]} Array of rows matching the query.
    */
   queryAll(
     tableName: string,
-    params?: string[] | ClientStorageDataFields | storageUpdateCallbackFilter
+    query?: ClientStorageDataFields | storageUpdateCallbackFilter
   ): ClientStorageFields[];
   
   /**
-   * Inserts data into a table.
-   * @param {string} tableName - The name of the table to insert into.
+   * Inserts a row into a table.
+   * @param {string} tableName - The name of the table.
    * @param {ClientStorageDataFields} data - The data to insert.
    * @returns {string | null} The ROW_IDENTIFIER of the inserted row, or null if the insertion failed.
    */
   insert(tableName: string, data: ClientStorageDataFields): string | null;
   
   /**
-   * Upserts data into a table (insert if not exists, update if exists).
-   * @param {string} tableName - The name of the table to upsert into.
-   * @param {ClientStorageDataFields} data - The data to upsert.
-   * @returns {string | null} The ROW_IDENTIFIER of the upserted row, or null if the upsert failed.
-   */
-  upsert(tableName: string, data: ClientStorageDataFields): string | null;
-  
-  /**
-   * Inserts or updates data in a table based on a query.
-   * @param {string} tableName - The name of the table to insert or update.
-   * @param {ClientStorageDataFields | storageUpdateCallbackFilter | null} query - The query to filter the data.
-   * @param {ClientStorageDataFields} data - The data to insert or update.
-   * @returns {string[] | null} Array of ROW_IDENTIFIERs of the updated rows, or null if the operation failed.
-   */
-  insertOrUpdate(
-    tableName: string,
-    query: ClientStorageDataFields | storageUpdateCallbackFilter | null,
-    data: ClientStorageDataFields
-  ): string[] | null;
-  
-  /**
-   * Updates data in a table.
-   * @param {string} tableName - The name of the table to update.
+   * Updates rows in a table.
+   * @param {string} tableName - The name of the table.
    * @param {string[]} ids - Array of ROW_IDENTIFIERs to update.
    * @param {storageUpdateCallback} updateFunction - Function to update the data.
    * @returns {number} The number of rows updated.
@@ -259,29 +238,53 @@ interface clientStore {
   ): number;
   
   /**
+   * Upserts data into a table (insert if not exists, update if exists).
+   * @param {string} tableName - The name of the table.
+   * @param {ClientStorageDataFields | storageUpdateCallbackFilter | null} query - The query to match rows.
+   * @param {ClientStorageDataFields} data - The data to insert or update.
+   * @returns {string[] | null} Array of ROW_IDENTIFIERs of the updated rows, or null if the operation failed.
+   */
+  upsert(
+    tableName: string,
+    query: ClientStorageDataFields | storageUpdateCallbackFilter | null,
+    data: ClientStorageDataFields
+  ): string[] | null;
+  
+  /**
    * Deletes rows from a table.
-   * @param {string} tableName - The name of the table to delete from.
-   * @param {string[]} ids - Array of ROW_IDENTIFIERs to delete.
+   * @param {string} tableName - The name of the table.
+   * @param {string[] | ClientStorageDataFields | storageUpdateCallbackFilter} query - The query to match rows to delete.
    * @returns {number} The number of rows deleted.
    */
   deleteRows(
     tableName: string,
-    ids: string[]
+    query: string[] | ClientStorageDataFields | storageUpdateCallbackFilter
   ): number;
+  
+  /**
+   * Creates a table and inserts data in one operation.
+   * @param {string} tableName - The name of the table to create.
+   * @param {ClientStorageDataFields[]} data - Array of data to insert.
+   * @returns {boolean} True if the operation was successful, false otherwise.
+   */
+  createTableWithData(
+    tableName: string,
+    data: ClientStorageDataFields[]
+  ): boolean;
 }
 
 // Make this file a module
 export {};
 
 /**
- * A simple client side data storage library implemented using localStorage or sessionStorage.
+ * A simple client side data storage library primarily designed to work in a web based application environment that uses a modern web browser.
  * clientStore provides a set of functions to store structured data like a database containing tables and rows of data in a tabular format.
  * It supports query operations and standard CRUD operations in both browser and Node.js environments.
  * 
  * @param {string} storeName - The name of the storage database.
- * @param {any} [storageEngine] - The storage engine to use. In browser environments, this can be localStorage or sessionStorage.
- *                               In Node.js environments, this can be any object that implements the Storage interface (getItem, setItem, removeItem).
- *                               Defaults to localStorage in browser environments or an in-memory storage in Node.js environments.
+ * @param {any} [storageEngine] - The storage engine to use. In browser environments, this is typically localStorage.
+ *                               In Node.js environments, this can be any object that implements the Storage interface (getItem, setItem, removeItem),
+ *                               such as node-localstorage. Defaults to localStorage in browser environments or an in-memory storage in Node.js environments.
  * @returns {clientStore} A clientStore instance with methods for working with the storage database.
  */
 declare function clientStore(storeName: string, storageEngine?: any): clientStore;
@@ -290,7 +293,7 @@ declare function clientStore(storeName: string, storageEngine?: any): clientStor
 export default clientStore;
 
 /**
- * Extend Window interface to include clientStore for browser environments
+ * Augment the Window interface to include clientStore
  */
 declare global {
   interface Window {

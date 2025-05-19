@@ -37,20 +37,20 @@ class LocalStorageMock {
   key(index) {
     return Object.keys(this.store)[index] || null;
   }
-  
+
   // Verification methods
   getSetItemCallCount() {
     return this.setItemCalls;
   }
-  
+
   resetSetItemCallCount() {
     this.setItemCalls = 0;
   }
-  
+
   getLastSavedData() {
     return {
       key: this.lastSavedKey,
-      value: this.lastSavedValue
+      value: this.lastSavedValue,
     };
   }
 }
@@ -58,9 +58,7 @@ class LocalStorageMock {
 // Create a mock browser environment for testing in Node.js
 global.window = {};
 global.localStorage = new LocalStorageMock();
-global.sessionStorage = new LocalStorageMock();
 global.window.localStorage = global.localStorage;
-global.window.sessionStorage = global.sessionStorage;
 
 describe("clientStore", function () {
   let store;
@@ -147,24 +145,31 @@ describe("clientStore", function () {
       // Create the table and insert records in one go
       const result = store.createTableWithData("library_books", books);
       store.commit();
-      
+
       // Verify the operation was successful
       assert.strictEqual(result, true);
-      
+
       // Verify the table exists
       assert.strictEqual(store.tableExists("library_books"), true);
-      
+
       // Verify the table has the correct fields
       const fields = store.tableFields("library_books");
-      assert.deepStrictEqual(fields, ["code", "title", "author", "year", "copies", "isClassic"]);
-      
+      assert.deepStrictEqual(fields, [
+        "code",
+        "title",
+        "author",
+        "year",
+        "copies",
+        "isClassic",
+      ]);
+
       // Verify the row count
       assert.strictEqual(store.rowCount("library_books"), 3);
-      
+
       // Verify the data was inserted correctly
       const allBooks = store.query("library_books");
       assert.strictEqual(allBooks.length, 3);
-      
+
       // Verify specific data points
       const classicBooks = store.query("library_books", { isClassic: true });
       assert.strictEqual(classicBooks.length, 2);
@@ -205,7 +210,7 @@ describe("clientStore", function () {
       assert.equal(results[0].year, 2023);
       assert.equal(results[0].copies, 10);
     });
-    
+
     it("should query all data using queryAll method", function () {
       // Insert multiple books
       store.insert("books", {
@@ -216,7 +221,7 @@ describe("clientStore", function () {
         copies: 5,
       });
       store.commit();
-      
+
       store.insert("books", {
         code: "B002",
         title: "Book Two",
@@ -225,7 +230,7 @@ describe("clientStore", function () {
         copies: 10,
       });
       store.commit();
-      
+
       store.insert("books", {
         code: "B003",
         title: "Book Three",
@@ -234,17 +239,17 @@ describe("clientStore", function () {
         copies: 15,
       });
       store.commit();
-      
+
       // Test queryAll with no parameters (should return all books)
       const allBooks = store.queryAll("books");
       assert.equal(allBooks.length, 3);
-      
+
       // Test queryAll with object parameter (filter by author)
       const authorOneBooks = store.queryAll("books", { author: "Author One" });
       assert.equal(authorOneBooks.length, 2);
       assert.equal(authorOneBooks[0].code, "B001");
       assert.equal(authorOneBooks[1].code, "B003");
-      
+
       // Test queryAll with function parameter
       const recentBooks = store.queryAll("books", (book) => book.year > 2020);
       assert.equal(recentBooks.length, 2);
@@ -662,7 +667,9 @@ describe("clientStore", function () {
       try {
         // Try to create a table with special characters
         store.createTable("invalid!table@name", ["field1"]);
-        assert.fail("Should have thrown an error for table name with special characters");
+        assert.fail(
+          "Should have thrown an error for table name with special characters"
+        );
       } catch (e) {
         // Expected error
         assert(true);

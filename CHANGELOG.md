@@ -16,4 +16,9 @@
 
 - Revert internal commitToStorage calls to prevent unnecessary storage commits.
 
+## 0.3.9
+
+- Added support notes for npm package to support Node.js environments via ClientStorage type.
+- Remove support for sessionStorage as its not a storage engine that persists data in the desired fashion for use cases this package is intended for.
+- Fix to include comments in typescript type definition files. 
 

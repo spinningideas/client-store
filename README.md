@@ -1,6 +1,6 @@
 # client-store
 
-A simple data storage library primarily design to work in a web based application environment that uses a modern web browser. It uses localStorage or sessionStorage, while in Node.js it attempts to provide a compatible in-memory implementation. It provides a set of functions to store structured data like a database containing tables and supporting queries and standard CRUD operations for data. It provides basic insert/update/delete/query capabilities similar to a database and extend what is available in localStorage or sessionStorage. The structured data is stored as serialized JSON in the selected storage engine.
+A simple data storage library primarily design to work in a web based application environment that uses a modern web browser. It uses localStorage, while in Node.js it attempts to provide a compatible in-memory implementation. It provides a set of functions to store structured data like a database containing tables and supporting queries and standard CRUD operations for data. It provides basic insert/update/delete/query capabilities similar to a database and extend what is available in localStorage or sessionStorage. The structured data is stored as serialized JSON in the selected storage engine.
 
 ## WARNING (Alpha Version)
 
@@ -28,8 +28,10 @@ This code is in active development and should not yet be used in production. The
 
 The package has no dependencies other than the browser's localStorage and sessionStorage APIs. There is additional code to support situations that do not have access to the browser's localStorage and sessionStorage APIs. This includes Node.js environments and in this case the package uses global.clientStoreMemoryStorage as an optional dependency for Node.js environments.
 
+NOTE: The maximum storage capacity for localStorage varies across browsers, but a common limit is around 5-10 MB per origin. Some browsers, like Safari, may prompt the user to increase the limit if the initial quota is exceeded, while others may silently fail to store data if the limit is reached. 
+
 - localStorage[](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)
-- sessionStorage[](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage)
+- [node-localstorage](https://github.com/andris9/node-localstorage) - this can be used in a node environment to provide a compatible in-memory storage implementation.
 
 ## Features
 
@@ -81,7 +83,7 @@ In Node.js environments, the library provides a compatible in-memory storage imp
 const moviesStore = clientStore("movies", localStorage);
 
 // Or Check if the storage exists and if not create the table then setup data. Useful for initial storage setup
-if (moviesStore.storageExists === false) {
+if (moviesStore.storageHasBeenCreated() === false) {
   // create the "movies" table
   moviesStore.createTable("movies", [
     "episodeId",
@@ -388,10 +390,10 @@ console.log(activeUsers);
 ```javascript
 // Import the clientStore module and a third-party storage implementation
 const clientStore = require("@spinningideas/client-store").default;
-const sessionStorage = require("sessionstorage-for-nodejs");
+const nodeLocalStorage = require("node-localstorage");
 
 // Initialize with the third-party storage implementation
-const configStore = clientStore("app-config", sessionStorage);
+const configStore = clientStore("app-config", nodeLocalStorage);
 
 // Create a table and add data
 configStore.createTable("settings", ["key", "value", "description"]);
@@ -480,9 +482,9 @@ moviesStore.commit();
 				It supports query operations and standard CRUD operations.<br />
 				- storeName: The name of the storage database.<br />
 				- storageEngine: The storage engine to use. Options include:<br />
-				  • In browsers: localStorage or sessionStorage (defaults to localStorage)<br />
+				  • In browsers: localStorage<br />
 				  • In Node.js: Any object implementing the ClientStorage interface (getItem, setItem, removeItem, etc.)<br />
-				  • If not provided in Node.js, an in-memory storage implementation is used automatically
+				  • If not provided in Node.js, an in-memory storage implementation is used automatically - can use node-localstorage for Node.js environments
 			</td>
 		</tr>
 		<tr>

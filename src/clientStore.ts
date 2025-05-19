@@ -1,6 +1,6 @@
 /*
  * ClientStorage is the contract for the type needed for data storage
- *  that can be implemented using actual localStorage or sessionStorage
+ *  that can be implemented using actual localStorage or a polyfill for Node.js environments
  *  depending on the desired storage engine or environment.
  */
 export class ClientStorage {
@@ -74,17 +74,17 @@ interface ClientStorageFields extends ClientStorageDataFields {
 type ClientStorageSortDirection = [string, "ASC" | "DESC"];
 
 /**
- * A simple client side data storage library implemented using localStorage or sessionStorage depending on the desired storage engine.
+ * A simple client side data storage library implemented using localStorage or a polyfill for Node.js environments depending on the desired storage engine.
  * clientStore provides a set of functions to store structured data like a database containing tables and rows of data in a tabular format.
  * It supports query operations and standard CRUD operations.
  *
  * @param storeName - The name of the storage storage database.
- * @param storageEngine - The storage engine to use (localStorage or sessionStorage). Defaults to localStorage.
+ * @param storageEngine - The storage engine to use (localStorage or node-localstorage). Defaults to localStorage.
  * @returns A clientStore instance with methods for working with the storage database.
  */
 function clientStore(
   storeName: string,
-  storageEngine?: ClientStorage | typeof localStorage | typeof sessionStorage
+  storageEngine?: ClientStorage | typeof localStorage
 ) {
   const storePrefix = "store_";
   const storageIdentifier = storePrefix + storeName;
@@ -92,7 +92,7 @@ function clientStore(
   let storageInstance = null;
   // Determine the appropriate storage mechanism based on environment
   // and handle both browser and Node.js environments
-  let storage: ClientStorage | typeof localStorage | typeof sessionStorage;
+  let storage: ClientStorage | typeof localStorage;
 
   // Check if we're in a browser environment (window exists)
   if (typeof window !== "undefined") {
@@ -107,7 +107,7 @@ function clientStore(
   } else {
     // In Node.js environment, use the provided storage engine or a fallback in-memory storage
     if (storageEngine) {
-      // Use the provided storage engine (likely from a polyfill like sessionstorage-for-nodejs)
+      // Use the provided storage engine (likely from a polyfill like https://github.com/lmaccherone/node-localstorage)
       storage = storageEngine;
     } else {
       // Create a fallback in-memory storage if none provided
@@ -432,8 +432,8 @@ function clientStore(
   // --------- public storage database functions
 
   /**
-   * Returns true if the storage database has been created, false otherwise.
-   * @returns {boolean} True if the storage database has been created, false otherwise.
+   * Returns true if the storage database has been created with any tables or data, false otherwise.
+   * @returns {boolean} True if the storage database has been created with any tables or data, false otherwise.
    */
   const storageHasBeenCreated = (): boolean => {
     return storageExists;
