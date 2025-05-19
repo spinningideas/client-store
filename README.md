@@ -46,10 +46,11 @@ In Node.js environments, the library provides a compatible in-memory storage imp
 ### Creating a database, table, and populating the table
 
 ```javascript
+
 // Initialize. If the storage doesn't exist, it is created
 const moviesStore = clientStore("movies", localStorage);
 
-// Check if the storage was just created. Useful for initial storage setup
+// Or Check if the storage exists and if not create the table then setup data. Useful for initial storage setup
 if (moviesStore.storageExists === false) {
   // create the "movies" table
   moviesStore.createTable("movies", [
@@ -92,7 +93,7 @@ if (moviesStore.storageExists === false) {
 ### Create and seed sata into Table in one process
 
 ```javascript
-// rows for pre-population
+// Seed rows of data for pre-population and setup of storage. Useful for initial storage setup
 const rows = [
   {
     episodeId: "IV",
@@ -129,7 +130,7 @@ moviesStore.commit();
 // If database already exists, and want to alter existing tables
 if (!moviesStore.columnExists("movies", "runTime")) {
   moviesStore.alterTable("movies", "runTime", 121);
-  moviesStore.commit(); // commit the deletions to localStorage
+  moviesStore.commit(); // commit the new columns to storage
 }
 
 // Multiple columns can also added at once
@@ -143,7 +144,7 @@ if (
     runTime: 121,
     rating: "PG",
   });
-  moviesStore.commit(); // commit the deletions to localStorage
+  moviesStore.commit(); // commit the new columns to storage
 }
 ```
 
@@ -243,7 +244,7 @@ console.log(bestMovie);
 /* Results:
 [
   {
-    ROW_IDENTIFIER: "2",
+    ROW_IDENTIFIER: "9c96a0e5-c372-45b6-8456-77e24720fa56",
     episodeId: "V",
     title: "Star Wars: The Empire Strikes Back",
     releaseYear: 1980,
@@ -332,16 +333,16 @@ userStore.createTable("users", ["id", "name", "email", "active"]);
 
 userStore.insert("users", {
   id: 1,
-  name: "John Doe",
-  email: "john@example.com",
+  name: "Luke Skywalker",
+  email: "luke@example.com",
   active: true,
 });
 
 userStore.insert("users", {
   id: 2,
-  name: "Jane Smith",
-  email: "jane@example.com",
-  active: true,
+  name: "Yoda",
+  email: "yoda@example.com",
+  active: false,
 });
 
 // Commit changes to the in-memory storage
