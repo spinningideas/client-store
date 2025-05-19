@@ -1,6 +1,6 @@
 # client-store
 
-A simple data storage library primarily design to work in a web based application environment that uses a modern web browser. It uses localStorage, while in Node.js it attempts to provide a compatible in-memory implementation. It provides a set of functions to store structured data like a database containing tables and supporting queries and standard CRUD operations for data. It provides basic insert/update/delete/query capabilities similar to a database and extend what is available in localStorage or sessionStorage. The structured data is stored as serialized JSON in the selected storage engine.
+A simple data storage library primarily design to work in a web based application environment that uses a modern web browser. It uses localStorage, while in Node.js it attempts to provide a compatible in-memory implementation. It provides a set of functions to store structured data like a database containing tables and supporting queries and standard CRUD operations for data. It provides basic insert/update/delete/query capabilities similar to a database and extend what is available in localStorage. The structured data is stored as serialized JSON in the selected storage engine.
 
 ## WARNING (Alpha Version)
 
@@ -26,9 +26,9 @@ This code is in active development and should not yet be used in production. The
 
 ## Dependencies
 
-The package has no dependencies other than the browser's localStorage and sessionStorage APIs. There is additional code to support situations that do not have access to the browser's localStorage and sessionStorage APIs. This includes Node.js environments and in this case the package uses global.clientStoreMemoryStorage as an optional dependency for Node.js environments.
+The package has no dependencies other than the browser's localStorage APIs. There is additional code to support situations that do not have access to the browser's localStorage APIs. This includes Node.js environments and in this case the package uses global.clientStoreMemoryStorage as an optional dependency for Node.js environments.
 
-NOTE: The maximum storage capacity for localStorage varies across browsers, but a common limit is around 5-10 MB per origin. Some browsers, like Safari, may prompt the user to increase the limit if the initial quota is exceeded, while others may silently fail to store data if the limit is reached. 
+NOTE: The maximum storage capacity for localStorage varies across browsers, but a common limit is around 5-10 MB per origin. Some browsers, like Safari, may prompt the user to increase the limit if the initial quota is exceeded, while others may silently fail to store data if the limit is reached.
 
 - localStorage[](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)
 - [node-localstorage](https://github.com/andris9/node-localstorage) - this can be used in a node environment to provide a compatible in-memory storage implementation.
@@ -37,7 +37,7 @@ NOTE: The maximum storage capacity for localStorage varies across browsers, but 
 
 - Provides ability to store (on the client-side withing web based applications) structured data like a database containing tables and rows of data in a tabular format.
 - Supports query operations against the stored data and standard CRUD operations (basic create/read(query)/update/delete capabilities).
-- The structured data is stored as serialized JSON in the selected storage engine (localStorage, sessionStorage, or a custom storage engine).
+- The structured data is stored as serialized JSON in the selected storage engine (localStorage, node-localstorage, or a custom storage engine).
 
 # Feature Roadmap
 
