@@ -505,7 +505,12 @@ function clientStore(
     return storageInstance.tables[tableName] ? true : false;
   }
 
-  // check whether a table exists, and if not, throw an error
+  /**
+   * Checks whether a table exists in the storage database
+   * @param {string} tableName - The name of the table to check
+   * @returns {boolean} True if the table exists, false otherwise
+   * @private
+   */
   function tableMissingThrowError(tableName: string): void {
     if (!tableExists(tableName)) {
       handleError("The table '" + tableName + "' does not exist");
@@ -571,20 +576,32 @@ function clientStore(
     storageInstance.data[tableName] = {};
   }
 
-  // drop a table
+  /**
+   * Drops given table and its data from storage database.
+   * @param tableName
+   */
   function dropTable(tableName: string): void {
     tableMissingThrowError(tableName);
     delete storageInstance.tables[tableName];
     delete storageInstance.data[tableName];
   }
 
-  // empty a table
+  /**
+   * Empties given table of all its data.
+   * @param tableName
+   */
   function truncate(tableName: string): void {
     tableMissingThrowError(tableName);
     storageInstance.data[tableName] = {};
   }
 
-  // create a table using array of Objects @ [{k:v,k:v},{k:v,k:v},etc]
+  /**
+   * Create a table using array of valid Objects
+   * @ [{k:v,k:v},{k:v,k:v},etc] as the data source and schema definition.
+   * @param tableName
+   * @param data
+   * @returns boolean true if successful, false otherwise
+   */
   function createTableWithData(
     tableName: string,
     data: ClientStorageDataFields[]
@@ -617,7 +634,7 @@ function clientStore(
   }
 
   /**
-   * Alter a table
+   * Alters given table to add columns to it.
    * @param {string} tableName - The name of the table to alter
    * @param {string[]} newFields - Array of columns to add
    * @param {ClientStorageDataFields|string} defaultValues - Can be an object of column's default values OR a default value string for single column for existing rows
@@ -765,7 +782,7 @@ function clientStore(
     return deletedCount;
   }
   /**
-   * update rows having given row identifiers
+   * Update rows having given row identifiers
    * @param tableName
    * @param ids
    * @param updateFunction
@@ -810,7 +827,7 @@ function clientStore(
 
   /**
    * Insert or update rows based on a given condition.
-   * Alias to upsert. Use upsert for better clarity.
+   * Alias to upsert. Use upsert for better clarity and succinctness.
    * @deprecated Use upsert instead.
    * @param {string} tableName - The name of the table
    * @param {ClientStorageDataFields | storageUpdateCallbackFilter | null} query - The query to match rows
@@ -823,7 +840,6 @@ function clientStore(
     data: ClientStorageDataFields
   ) {
     tableMissingThrowError(tableName);
-    console.warn("upsertOrUpdate is deprecated. Use upsert instead.");
     return upsert(tableName, query, data);
   }
 
@@ -871,8 +887,8 @@ function clientStore(
   }
 
   /**
-   * Commits the storage database to localStorage.
-   * @description Saves the current state of the storage database to localStorage.
+   * Commits the storage database to localStorage or the configured backing storage.
+   * @description Saves the current state of the storage database to localStorage or the configured backing storage.
    * @returns {boolean} True if the commit was successful, false otherwise.
    */
   function commit(): boolean {
@@ -888,6 +904,7 @@ function clientStore(
    * Provides central error handling. Throws an error with the given message.
    * @param msg - The error message.
    * @returns Never returns.
+   * @private
    */
   function handleError(msg: string): never {
     throw new Error(msg);
@@ -897,6 +914,7 @@ function clientStore(
    * Clones an object into a new row of data to return to the caller.
    * @param obj - The object that is a row of data to clone.
    * @returns The cloned object that is a row of data.
+   * @private
    */
   function clone<T extends ClientStorageFields>(obj: T): T {
     const new_obj = {} as T;
@@ -912,6 +930,7 @@ function clientStore(
    * Validates a name (storageInstance, table, field names) by checking if it contains only alpha-numeric characters and underscores.
    * @param name - The name to validate.
    * @returns True if the name is valid, false otherwise.
+   * @private
    */
   function validateName(name: string): boolean {
     return name.toString().match(/[^a-z_0-9]/gi) ? false : true;
@@ -924,6 +943,7 @@ function clientStore(
    * @param tableName - The name of the table.
    * @param data - The data to validate that may have additional fields NOT defined in the table schema.
    * @returns Only dataset containing ONLY data for the valid fields for given table name
+   * @private
    */
   function validFields(
     tableName: string,
@@ -946,6 +966,7 @@ function clientStore(
    *  
    * @param tableName - The name of the table.
    * @param data - The data to validate.
+   * @private
    * @returns The validated data.
    * 
    * @example
