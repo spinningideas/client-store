@@ -2,9 +2,23 @@
 
 A simple data storage library that works in both browser and Node.js environments. In browsers, it uses localStorage or sessionStorage, while in Node.js it provides a compatible in-memory implementation. clientStore provides a set of functions to store structured data like a database containing tables and supporting queries and standard CRUD operations for data. It provides basic insert/update/delete/query capabilities with no dependencies. The structured data is stored as serialized JSON in the selected storage engine.
 
-- Inspired by localStorageDB by Kailash Nadh (https://github.com/knadh/localStorageDB) but updated to modern JavaScript standards and TypeScript support.
+## WARNING (Alpha Version): This code is in active development and should not yet be used in production. The API is subject to change. There is ideation and work in progress to extend the possible storage engines to include IndexedDB and other storage engines including in-memory storage and sync to remote storage engines. This was part of the driver for the fork of localStorageDB.
 
-## WARNING: This code is in active development and is not yet ready for production use. The API is subject to change.
+## Credits and Inspiration
+
+- [localStorageDB](https://github.com/knadh/localStorageDB) This package was **forked** from localStorageDB which was created by Kailash Nadh (https://github.com/knadh/localStorageDB) and the code was updated to modern JavaScript standards and TypeScript support added and naming changed except for the public methods. Many thanks to Kailash Nadh for the original implementation and inspiration. There is a [pull request](https://github.com/knadh/localStorageDB/pull/11) to add TypeScript support, but it has not been merged yet and projects that depended on the package needed to evolve in breaking fashion with new features. The original forked code that was the basis for this package is available in this repo under src folder in the `localStorageDB.ts` file.
+- [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
+- [convex-backend](https://github.com/get-convex/convex-backend
+- [use-local-storage](https://github.com/nas5w/use-local-storage)
+- [lowdb](https://github.com/typicode/lowdb)
+- [local-storage-db](https://github.com/Yobuligo/local-storage-db.typescript)
+
+## Dependencies
+
+The package has not dependencies other than the browser's localStorage and sessionStorage APIs.
+
+- localStorage[](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)
+- sessionStorage[](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage)
 
 ## Features
 
@@ -46,7 +60,6 @@ In Node.js environments, the library provides a compatible in-memory storage imp
 ### Creating a database, table, and populating the table
 
 ```javascript
-
 // Initialize. If the storage doesn't exist, it is created
 const moviesStore = clientStore("movies", localStorage);
 
