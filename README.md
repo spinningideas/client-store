@@ -11,12 +11,17 @@ A simple data storage library that works in both browser and Node.js environment
 ## Credits and Inspiration
 
 - [localStorageDB](https://github.com/knadh/localStorageDB) This package was **forked** from localStorageDB which was created by Kailash Nadh (https://github.com/knadh/localStorageDB) and the code was updated to modern JavaScript standards and TypeScript support added and naming changed except for the public methods. Many thanks to Kailash Nadh for the original implementation and inspiration. There is a [pull request](https://github.com/knadh/localStorageDB/pull/11) to add TypeScript support, but it has not been merged yet and projects that depended on the package needed to evolve in breaking fashion with new features. The original forked code that was the basis for this package is available in this repo under src folder in the `localStorageDB.ts` file.
+		- Initial changes include:
+			- Updated to modern JavaScript standards (ES6+, parameters pascalCase etc)
+			- Added TypeScript support
+			- Renamed ID record identifier from "ID" to "ROW_IDENTIFIER" to be more consistent with SQL naming conventions and change datatype from integer to uuid
+			- Change internal methods and structure in preparation for adding support for other storage engines and doing more work
 - [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
-- [convex-backend](https://github.com/get-convex/convex-backend
-- [use-local-storage](https://github.com/nas5w/use-local-storage)
+- https://github.com/dreamsavior/Better-localStorage
 - [lowdb](https://github.com/typicode/lowdb)
 - [local-storage-db](https://github.com/Yobuligo/local-storage-db.typescript)
-- https://github.com/dreamsavior/Better-localStorage
+- [use-local-storage](https://github.com/nas5w/use-local-storage)
+- [convex-backend](https://github.com/get-convex/convex-backend
 
 ## Dependencies
 
