@@ -12,3 +12,8 @@
 
 - Added queryAll and support for returning all data from table more directly.
 
+## 0.3.8
+
+- Revert internal commitToStorage calls to prevent unnecessary storage commits.
+
+
