@@ -70,7 +70,7 @@ Browsers need to support "Local Storage" and "Session Storage" in order for clie
 
 ## Node.js
 
-In Node.js environments, the library provides a compatible in-memory storage implementation by default via global.clientStoreMemoryStorage, or you can use a third-party storage implementation like `sessionstorage-for-nodejs`.
+In Node.js environments, the library provides a compatible in-memory storage implementation by default via global.clientStoreMemoryStorage, or you can use a npm storage implementation like `node-localstorage `.
 
 # Usage / Examples
 
