@@ -6,6 +6,9 @@ const clientStore = require("../dist/cjs/clientStore").default;
 class LocalStorageMock {
   constructor() {
     this.store = {};
+    this.setItemCalls = 0;
+    this.lastSavedKey = null;
+    this.lastSavedValue = null;
   }
 
   clear() {
@@ -18,6 +21,9 @@ class LocalStorageMock {
 
   setItem(key, value) {
     this.store[key] = String(value);
+    this.setItemCalls++;
+    this.lastSavedKey = key;
+    this.lastSavedValue = value;
   }
 
   removeItem(key) {
@@ -30,6 +36,22 @@ class LocalStorageMock {
 
   key(index) {
     return Object.keys(this.store)[index] || null;
+  }
+  
+  // Verification methods
+  getSetItemCallCount() {
+    return this.setItemCalls;
+  }
+  
+  resetSetItemCallCount() {
+    this.setItemCalls = 0;
+  }
+  
+  getLastSavedData() {
+    return {
+      key: this.lastSavedKey,
+      value: this.lastSavedValue
+    };
   }
 }
 
@@ -58,17 +80,21 @@ describe("clientStore", function () {
 
     it("should create a table", function () {
       store.createTable("test_table", ["name", "value"]);
+      store.commit();
       assert(store.tableExists("test_table"));
     });
 
     it("should count tables", function () {
       store.createTable("test_table1", ["field1"]);
+      store.commit();
       store.createTable("test_table2", ["field2"]);
+      store.commit();
       assert.equal(store.tableCount(), 2);
     });
 
     it("should get table fields", function () {
       store.createTable("test_table", ["name", "value", "description"]);
+      store.commit();
       const fields = store.tableFields("test_table");
       assert(fields.includes("name"));
       assert(fields.includes("value"));
@@ -77,6 +103,7 @@ describe("clientStore", function () {
 
     it("should check if column exists", function () {
       store.createTable("test_table", ["name", "value"]);
+      store.commit();
       assert(store.columnExists("test_table", "name"));
       assert(!store.columnExists("test_table", "nonexistent"));
     });
@@ -85,6 +112,7 @@ describe("clientStore", function () {
   describe("CRUD Operations", function () {
     beforeEach(function () {
       store.createTable("books", ["code", "title", "author", "year", "copies"]);
+      store.commit();
     });
 
     it("should create a table and insert data in one operation using createTableWithData", function () {
@@ -118,6 +146,7 @@ describe("clientStore", function () {
 
       // Create the table and insert records in one go
       const result = store.createTableWithData("library_books", books);
+      store.commit();
       
       // Verify the operation was successful
       assert.strictEqual(result, true);
@@ -152,6 +181,7 @@ describe("clientStore", function () {
         year: 2023,
         copies: 10,
       });
+      store.commit();
       assert(id);
       assert.equal(store.rowCount("books"), 1);
     });
@@ -185,6 +215,7 @@ describe("clientStore", function () {
         year: 2020,
         copies: 5,
       });
+      store.commit();
       
       store.insert("books", {
         code: "B002",
@@ -193,6 +224,7 @@ describe("clientStore", function () {
         year: 2021,
         copies: 10,
       });
+      store.commit();
       
       store.insert("books", {
         code: "B003",
@@ -201,6 +233,7 @@ describe("clientStore", function () {
         year: 2022,
         copies: 15,
       });
+      store.commit();
       
       // Test queryAll with no parameters (should return all books)
       const allBooks = store.queryAll("books");
@@ -226,6 +259,7 @@ describe("clientStore", function () {
         title: "Book 1",
         author: "Author 1",
       });
+      store.commit();
 
       if (id) {
         // Try to query without specifying IDs
@@ -252,6 +286,7 @@ describe("clientStore", function () {
         year: 2020,
         copies: 5,
       });
+      store.commit();
 
       if (!id) throw new Error("Failed to insert data");
 
@@ -262,6 +297,7 @@ describe("clientStore", function () {
           row.copies = 10;
           return row;
         });
+        store.commit();
 
         // If update returns a count, verify it
         if (typeof updateCount === "number") {
@@ -325,6 +361,7 @@ describe("clientStore", function () {
       try {
         // Delete the row
         const deleteCount = store.deleteRows("books", [id]);
+        store.commit();
 
         // If deleteRows returns a count, verify it
         if (typeof deleteCount === "number") {
@@ -343,12 +380,15 @@ describe("clientStore", function () {
   describe("Additional Operations", function () {
     it("should alter a table by adding new fields", function () {
       store.createTable("test_table", ["name", "value"]);
+      store.commit();
       const id = store.insert("test_table", { name: "test", value: 123 });
+      store.commit();
 
       // Add a new field with a default value
       store.alterTable("test_table", ["description"], {
         description: "default",
       });
+      store.commit();
 
       // Verify the field was added
       const fields = store.tableFields("test_table");
@@ -361,7 +401,9 @@ describe("clientStore", function () {
 
     it("should alter a table by adding multiple fields with different default values", function () {
       store.createTable("multi_field_table", ["name"]);
+      store.commit();
       const id = store.insert("multi_field_table", { name: "test item" });
+      store.commit();
 
       // Add multiple fields with default values
       store.alterTable(
@@ -373,6 +415,7 @@ describe("clientStore", function () {
           created_date: "2023-01-01",
         }
       );
+      store.commit();
 
       // Verify the fields were added
       const fields = store.tableFields("multi_field_table");
@@ -389,10 +432,13 @@ describe("clientStore", function () {
 
     it("should alter a table by adding a field with a single default value for all fields", function () {
       store.createTable("single_default_table", ["name"]);
+      store.commit();
       const id = store.insert("single_default_table", { name: "test item" });
+      store.commit();
 
       // Add a field with a single default value (string instead of object)
       store.alterTable("single_default_table", ["status"], "pending");
+      store.commit();
 
       // Verify the field was added with the default value
       const results = store.query("single_default_table", [id]);
@@ -402,10 +448,12 @@ describe("clientStore", function () {
     it("should drop a table", function () {
       // Create a table
       store.createTable("temp_table", ["field1"]);
+      store.commit();
       assert(store.tableExists("temp_table"));
 
       // Drop the table
       store.dropTable("temp_table");
+      store.commit();
 
       // Verify the table was dropped
       assert(!store.tableExists("temp_table"));
@@ -414,14 +462,18 @@ describe("clientStore", function () {
     it("should truncate a table", function () {
       // Create a table and add data
       store.createTable("truncate_table", ["field1"]);
+      store.commit();
       store.insert("truncate_table", { field1: "value1" });
+      store.commit();
       store.insert("truncate_table", { field1: "value2" });
+      store.commit();
 
       // Verify we have data
       assert.equal(store.rowCount("truncate_table"), 2);
 
       // Truncate the table
       store.truncate("truncate_table");
+      store.commit();
 
       // Verify the table is empty but still exists
       assert(store.tableExists("truncate_table"));
@@ -431,6 +483,7 @@ describe("clientStore", function () {
     it("should handle table names with special validation", function () {
       // Test with a valid table name
       store.createTable("valid_table_123", ["field1"]);
+      store.commit();
       assert(store.tableExists("valid_table_123"));
 
       // Test with an invalid table name would throw an error, but we'll catch it
@@ -454,7 +507,9 @@ describe("clientStore", function () {
     it("should export storage as JSON", function () {
       // Create a table with data
       store.createTable("export_test", ["name", "value"]);
+      store.commit();
       store.insert("export_test", { name: "test item", value: 42 });
+      store.commit();
 
       // Export the storage
       const exportedData = store.exportStorage();
@@ -515,6 +570,7 @@ describe("clientStore", function () {
 
       // Create a table to verify the store exists
       dropStore.createTable("test_table", ["field1"]);
+      dropStore.commit();
       assert(dropStore.tableExists("test_table"));
 
       // Drop the storage
@@ -532,6 +588,7 @@ describe("clientStore", function () {
     it("should get table fields", function () {
       // Create a table with fields
       store.createTable("fields_test", ["name", "value", "status"]);
+      store.commit();
 
       // Get the fields
       const fields = store.tableFields("fields_test");
@@ -546,6 +603,7 @@ describe("clientStore", function () {
     it("should check if column exists", function () {
       // Create a table with fields
       store.createTable("column_test", ["name", "value"]);
+      store.commit();
 
       // Check column existence
       assert(store.columnExists("column_test", "name"));
@@ -556,20 +614,25 @@ describe("clientStore", function () {
     it("should count rows in a table", function () {
       // Create a table
       store.createTable("count_test", ["field1"]);
+      store.commit();
 
       // Initially the table should be empty
       assert.equal(store.rowCount("count_test"), 0);
 
       // Insert some rows
       store.insert("count_test", { field1: "value1" });
+      store.commit();
       store.insert("count_test", { field1: "value2" });
+      store.commit();
       store.insert("count_test", { field1: "value3" });
+      store.commit();
 
       // Check the count
       assert.equal(store.rowCount("count_test"), 3);
 
       // Delete all rows
       store.truncate("count_test");
+      store.commit();
 
       // Check the count again
       assert.equal(store.rowCount("count_test"), 0);

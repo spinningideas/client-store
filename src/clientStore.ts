@@ -148,7 +148,6 @@ function clientStore(
       );
     } else {
       storageInstance = { tables: {}, data: {} };
-      commitToStorage();
       storageExists = true;
     }
   }
@@ -430,23 +429,6 @@ function clientStore(
     return rowIds;
   }
 
-  /**
-   * Commits the storage database to localStorage.
-   * Critical operation that actually persists the storage database
-   * to localStorage or the configured storage.
-   * @description Saves the current state of the storage database to localStorage.
-   * @returns {boolean} True if the commit was successful, false otherwise.
-   * @private
-   */
-  function commitToStorage(): boolean {
-    try {
-      storage.setItem(storageIdentifier, JSON.stringify(storageInstance));
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
   // --------- public storage database functions
 
   /**
@@ -587,7 +569,6 @@ function clientStore(
     }
     storageInstance.tables[tableName] = { fields: fields };
     storageInstance.data[tableName] = {};
-    commitToStorage();
   }
 
   // drop a table
@@ -595,14 +576,12 @@ function clientStore(
     tableMissingThrowError(tableName);
     delete storageInstance.tables[tableName];
     delete storageInstance.data[tableName];
-    commitToStorage();
   }
 
   // empty a table
   function truncate(tableName: string): void {
     tableMissingThrowError(tableName);
     storageInstance.data[tableName] = {};
-    commitToStorage();
   }
 
   // create a table using array of Objects @ [{k:v,k:v},{k:v,k:v},etc]
@@ -633,7 +612,6 @@ function clientStore(
           );
         }
       }
-      commitToStorage();
     }
     return true;
   }
@@ -671,7 +649,6 @@ function clientStore(
         }
       }
     }
-    commitToStorage();
   }
 
   /**
@@ -709,7 +686,6 @@ function clientStore(
     const rowIdentifier = generateId();
     data.ROW_IDENTIFIER = rowIdentifier;
     storageInstance.data[tableName][rowIdentifier] = data;
-    commitToStorage();
     return rowIdentifier;
   }
 
@@ -786,11 +762,6 @@ function clientStore(
         deletedCount++;
       }
     }
-
-    if (deletedCount > 0) {
-      commitToStorage();
-    }
-
     return deletedCount;
   }
   /**
@@ -833,10 +804,6 @@ function clientStore(
         );
         num++;
       }
-    }
-
-    if (num > 0) {
-      commitToStorage();
     }
     return num;
   }
@@ -907,17 +874,10 @@ function clientStore(
    * Commits the storage database to localStorage.
    * @description Saves the current state of the storage database to localStorage.
    * @returns {boolean} True if the commit was successful, false otherwise.
-   * @deprecated Auto commit is now enabled. You no longer need to call commit() to persist changes to storage.
    */
-  function commit(autoCommitEnabled: boolean = true): boolean {
+  function commit(): boolean {
     try {
-      if (autoCommitEnabled) {
-        commitToStorage();
-      } else {
-        console.warn(
-          "commit is deprecated. Auto commit is now enabled by default. You no longer need to call commit() to persist changes to storage."
-        );
-      }
+      storage.setItem(storageIdentifier, JSON.stringify(storageInstance));
       return true;
     } catch (e) {
       return false;
