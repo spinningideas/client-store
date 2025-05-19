@@ -4,6 +4,10 @@ A simple data storage library that works in both browser and Node.js environment
 
 ## WARNING (Alpha Version): This code is in active development and should not yet be used in production. The API is subject to change. There is ideation and work in progress to extend the possible storage engines to include IndexedDB and other storage engines including in-memory storage and sync to remote storage engines. This was part of the driver for the fork of localStorageDB.
 
+# License
+
+- Licensed: MIT license
+
 ## Credits and Inspiration
 
 - [localStorageDB](https://github.com/knadh/localStorageDB) This package was **forked** from localStorageDB which was created by Kailash Nadh (https://github.com/knadh/localStorageDB) and the code was updated to modern JavaScript standards and TypeScript support added and naming changed except for the public methods. Many thanks to Kailash Nadh for the original implementation and inspiration. There is a [pull request](https://github.com/knadh/localStorageDB/pull/11) to add TypeScript support, but it has not been merged yet and projects that depended on the package needed to evolve in breaking fashion with new features. The original forked code that was the basis for this package is available in this repo under src folder in the `localStorageDB.ts` file.
@@ -12,6 +16,7 @@ A simple data storage library that works in both browser and Node.js environment
 - [use-local-storage](https://github.com/nas5w/use-local-storage)
 - [lowdb](https://github.com/typicode/lowdb)
 - [local-storage-db](https://github.com/Yobuligo/local-storage-db.typescript)
+- https://github.com/dreamsavior/Better-localStorage
 
 ## Dependencies
 
@@ -22,14 +27,21 @@ The package has not dependencies other than the browser's localStorage and sessi
 
 ## Features
 
-- Provides ability to store (on the client-side in web browsers) structured data like a database containing tables and rows of data in a tabular format.
-- Supports query operations and standard CRUD operations.
-- Provides basic insert/update/delete/query capabilities with no dependencies.
+- Provides ability to store (on the client-side withing web based applications) structured data like a database containing tables and rows of data in a tabular format.
+- Supports query operations and standard CRUD operations (basic create/read(query)/update/delete capabilities).
 - The structured data is stored as serialized JSON in the selected storage engine (localStorage, sessionStorage, or a custom storage engine).
 
-# License
+# Feature Roadmap
 
-- Licensed: MIT license
+1. Add tests for the pagingation and sorting features in query.
+2. Implement support to store JSON objects and arrays as column values.
+3. Create a GitHub Actions workflow to automatically run these tests on pull requests
+4. Add GitHub action to automatically build and publish the package to npm on push to main
+5. Add GitHub Pages to host the documentation
+6. Add support for IndexedDB
+7. Add support for remote storage engines
+8. Add support for in-memory storage
+9. Add support for sync to remote storage engines
 
 ## Installation
 
@@ -697,14 +709,6 @@ npm version minor  # for new features
 npm version major  # for breaking changes
 npm publish
 ```
-
-# Feature Roadmap
-
-1. Add tests for the pagingation and sorting features in query.
-2. Implement support to store JSON objects and arrays as column values.
-3. Create a GitHub Actions workflow to automatically run these tests on pull requests
-4. Add GitHub action to automatically build and publish the package to npm on push to main
-5. Add GitHub Pages to host the documentation
 
 # Testing
 
