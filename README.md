@@ -30,7 +30,7 @@ The package has no dependencies other than the browser's localStorage APIs. Ther
 
 NOTE: The maximum storage capacity for localStorage varies across browsers, but a common limit is around 5-10 MB per origin. Some browsers, like Safari, may prompt the user to increase the limit if the initial quota is exceeded, while others may silently fail to store data if the limit is reached.
 
-- localStorage[](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)
+- [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)
 - [node-localstorage](https://github.com/andris9/node-localstorage) - this can be used in a node environment to provide a compatible in-memory storage implementation.
 
 ## Features
