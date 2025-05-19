@@ -21,11 +21,11 @@ A simple data storage library that works in both browser and Node.js environment
 - [lowdb](https://github.com/typicode/lowdb)
 - [local-storage-db](https://github.com/Yobuligo/local-storage-db.typescript)
 - [use-local-storage](https://github.com/nas5w/use-local-storage)
-- [convex-backend](https://github.com/get-convex/convex-backend
+- [convex-backend](https://github.com/get-convex/convex-backend)
 
 ## Dependencies
 
-The package has not dependencies other than the browser's localStorage and sessionStorage APIs.
+The package has no dependencies other than the browser's localStorage and sessionStorage APIs. There is additional code to support Node.js environments that uses global.clientStoreMemoryStorage as an optional dependency for Node.js environments.
 
 - localStorage[](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)
 - sessionStorage[](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage)
