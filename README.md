@@ -22,6 +22,8 @@ A simple data storage library that works in both browser and Node.js environment
 - [local-storage-db](https://github.com/Yobuligo/local-storage-db.typescript)
 - [use-local-storage](https://github.com/nas5w/use-local-storage)
 - [convex-backend](https://github.com/get-convex/convex-backend)
+- [clientdb](https://github.com/clientdb/clientdb)
+- [tiny-localstorage-db](https://github.com/agarwalnitesh42/tiny-localstorage-db)
 
 ## Dependencies
 
