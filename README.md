@@ -1,8 +1,10 @@
 # client-store
 
-A simple data storage library that works in both browser and Node.js environments. In browsers, it uses localStorage or sessionStorage, while in Node.js it provides a compatible in-memory implementation. clientStore provides a set of functions to store structured data like a database containing tables and supporting queries and standard CRUD operations for data. It provides basic insert/update/delete/query capabilities with no dependencies. The structured data is stored as serialized JSON in the selected storage engine.
+A simple data storage library primarily design to work in a web based application environment that uses a modern web browser. It uses localStorage or sessionStorage, while in Node.js it attempts to provide a compatible in-memory implementation. It provides a set of functions to store structured data like a database containing tables and supporting queries and standard CRUD operations for data. It provides basic insert/update/delete/query capabilities similar to a database and extend what is available in localStorage or sessionStorage. The structured data is stored as serialized JSON in the selected storage engine.
 
-## WARNING (Alpha Version): This code is in active development and should not yet be used in production. The API is subject to change. There is ideation and work in progress to extend the possible storage engines to include IndexedDB and other storage engines including in-memory storage and sync to remote storage engines. This was part of the driver for the fork of localStorageDB.
+## WARNING (Alpha Version)
+
+This code is in active development and should not yet be used in production. The API is subject to change. There is ideation and work in progress to extend the possible storage engines to include IndexedDB and other storage engines including in-memory storage and sync to remote storage engines. This was part of the driver for the fork of localStorageDB.
 
 # License
 
@@ -10,12 +12,7 @@ A simple data storage library that works in both browser and Node.js environment
 
 ## Credits and Inspiration
 
-- [localStorageDB](https://github.com/knadh/localStorageDB) This package was **forked** from localStorageDB which was created by Kailash Nadh (https://github.com/knadh/localStorageDB) and the code was updated to modern JavaScript standards and TypeScript support added and naming changed except for the public methods. Many thanks to Kailash Nadh for the original implementation and inspiration. There is a [pull request](https://github.com/knadh/localStorageDB/pull/11) to add TypeScript support, but it has not been merged yet and projects that depended on the package needed to evolve in breaking fashion with new features. The original forked code that was the basis for this package is available in this repo under src folder in the `localStorageDB.ts` file.
-		- Initial changes include:
-			- Updated to modern JavaScript standards (ES6+, parameters pascalCase etc)
-			- Added TypeScript support
-			- Renamed ID record identifier from "ID" to "ROW_IDENTIFIER" to be more consistent with SQL naming conventions and change datatype from integer to uuid
-			- Change internal methods and structure in preparation for adding support for other storage engines and doing more work
+- [localStorageDB](https://github.com/knadh/localStorageDB) This package was **forked** from localStorageDB which was created by Kailash Nadh (https://github.com/knadh/localStorageDB) and the code was updated to modern JavaScript standards and TypeScript support added and naming changed except for the public methods. Many thanks to Kailash Nadh for the original implementation and inspiration. The package appears to no longer be maintained and projects that depended on the package needed to evolve in breaking fashion with new features. The original forked code that was the basis for this package is available in this repo under src folder in the `localStorageDB.ts` file and this code will be used as a reference for future development and will NOT be altered. - Initial changes (made in new code forked from localStorageDB.ts into clientStore.ts) include: - Updated to modern JavaScript standards (ES6+, parameters pascalCase etc) - Added JSDoc comments - Renamed ID record identifier from "ID" to "ROW_IDENTIFIER" to be more consistent with SQL naming conventions and change datatype from integer to uuid - Change internal methods and structure in preparation for adding support for other storage engines and doing more work
 - [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
 - https://github.com/dreamsavior/Better-localStorage
 - [lowdb](https://github.com/typicode/lowdb)
@@ -24,10 +21,12 @@ A simple data storage library that works in both browser and Node.js environment
 - [convex-backend](https://github.com/get-convex/convex-backend)
 - [clientdb](https://github.com/clientdb/clientdb)
 - [tiny-localstorage-db](https://github.com/agarwalnitesh42/tiny-localstorage-db)
+- [sqlite3](https://github.com/mapbox/node-sqlite3)
+- [localForage](https://github.com/localForage/localForage) - https://github.com/localForage/localForage/blob/master/src/localforage.js
 
 ## Dependencies
 
-The package has no dependencies other than the browser's localStorage and sessionStorage APIs. There is additional code to support Node.js environments that uses global.clientStoreMemoryStorage as an optional dependency for Node.js environments.
+The package has no dependencies other than the browser's localStorage and sessionStorage APIs. There is additional code to support situations that do not have access to the browser's localStorage and sessionStorage APIs. This includes Node.js environments and in this case the package uses global.clientStoreMemoryStorage as an optional dependency for Node.js environments.
 
 - localStorage[](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)
 - sessionStorage[](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage)
@@ -35,7 +34,7 @@ The package has no dependencies other than the browser's localStorage and sessio
 ## Features
 
 - Provides ability to store (on the client-side withing web based applications) structured data like a database containing tables and rows of data in a tabular format.
-- Supports query operations and standard CRUD operations (basic create/read(query)/update/delete capabilities).
+- Supports query operations against the stored data and standard CRUD operations (basic create/read(query)/update/delete capabilities).
 - The structured data is stored as serialized JSON in the selected storage engine (localStorage, sessionStorage, or a custom storage engine).
 
 # Feature Roadmap
@@ -45,10 +44,9 @@ The package has no dependencies other than the browser's localStorage and sessio
 3. Create a GitHub Actions workflow to automatically run these tests on pull requests
 4. Add GitHub action to automatically build and publish the package to npm on push to main
 5. Add GitHub Pages to host the documentation
-6. Add support for IndexedDB
-7. Add support for remote storage engines
-8. Add support for in-memory storage
-9. Add support for sync to remote storage engines
+6. Add support for IndexedDB - see https://github.com/localForage/localForage/blob/master/src/drivers/indexeddb.js
+7. Add support for SQLite
+8. Add support for remote storage engines and support for sync to remote storage engines
 
 ## Installation
 
