@@ -1,9 +1,57 @@
 // Type definitions for clientStore
 
 /**
+ * ClientStorage is the contract for the type needed for data storage.
+ * This matches the interface of the localStorage object and
+ * can be implemented using actual localStorage or a polyfill for Node.js environments
+ * depending on the desired storage engine or environment.
+ */
+export interface ClientStorage {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem(key: string): void;
+  readonly length: number;
+  key(index: number): string | null;
+  clear(): void;
+}
+
+/**
+ * A typed storage service that implements the ClientStorage interface using localStorage.
+ * @template T - The type of the data to store.
+ */
+export class ClientStorageTyped<T extends Record<string, any>> {
+  private storage: Storage;
+
+  /**
+   * Sets an item in localStorage with the given key and value.
+   * @param key - The key to store the value under.
+   * @param value - The value to store.
+   */
+  setItem<K extends keyof T>(key: K, value: T[K]): void;
+
+  /**
+   * Gets an item from localStorage with the given key.
+   * @param key - The key to retrieve the value for.
+   * @returns The value stored under the key, or null if not found.
+   */
+  getItem<K extends keyof T>(key: K): T[K] | null;
+
+  /**
+   * Removes an item from localStorage with the given key.
+   * @param key - The key to remove.
+   */
+  removeItem<K extends keyof T>(key: K): void;
+
+  /**
+   * Clears all items from localStorage.
+   */
+  clear(): void;
+}
+
+/**
  * Fields that are specified at time of table creation and column definition
  */
-interface ClientStorageDataFields {
+export interface ClientStorageDataFields {
   [T: string]: any;
 }
 
@@ -12,7 +60,7 @@ interface ClientStorageDataFields {
  * The ROW_IDENTIFIER field is added to the data fields and is used to identify a row in the storage database.
  * The other data fields are the fields that comprise a given table definition.
  */
-interface ClientStorageFields extends ClientStorageDataFields {
+export interface ClientStorageFields extends ClientStorageDataFields {
   ROW_IDENTIFIER: string;
 }
 
@@ -21,7 +69,7 @@ interface ClientStorageFields extends ClientStorageDataFields {
  * @param object - The row to update.
  * @returns The updated row.
  */
-interface storageUpdateCallback {
+export interface storageUpdateCallback {
   (object: ClientStorageFields): ClientStorageDataFields;
 }
 
@@ -30,7 +78,7 @@ interface storageUpdateCallback {
  * @param object - The row to filter.
  * @returns True if the row should be included, false otherwise.
  */
-interface storageUpdateCallbackFilter {
+export interface storageUpdateCallbackFilter {
   (object: ClientStorageFields): boolean;
 }
 
@@ -39,7 +87,7 @@ interface storageUpdateCallbackFilter {
  * @param field - The field to sort by.
  * @param direction - The direction to sort by (ASC or DESC).
  */
-type ClientStorageSortDirection = [string, "ASC" | "DESC"];
+export type ClientStorageSortDirection = [string, "ASC" | "DESC"];
 
 /**
  * Parameters for querying data from a table.

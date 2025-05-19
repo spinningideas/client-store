@@ -1,37 +1,45 @@
 /*
- * ClientStorage is the contract for the type needed for data storage
- *  that can be implemented using actual localStorage or a polyfill for Node.js environments
- *  depending on the desired storage engine or environment.
+ * ClientStorage is the contract for the type needed for data storage.
+ * This matches the interface of the localStorage object and
+ * can be implemented using actual localStorage or a polyfill for Node.js environments
+ * depending on the desired storage engine or environment.
  */
-export class ClientStorage {
-  store: { [key: string]: string };
+export interface ClientStorage {
+  getItem(key): string;
+  setItem(key, value): void;
+  removeItem(key): void;
+  get length(): number;
+  key(index): string | null;
+  clear(): void;
+}
 
-  constructor() {
-    this.store = {};
+/**
+ * A typed storage service that implements the ClientStorage interface using localStorage.
+ * @template T - The type of the data to store.
+ */
+export class ClientStorageTyped<T extends Record<string, any>> {
+  private storage = window.localStorage;
+
+  setItem<K extends keyof T>(key: K, value: T[K]): void {
+    this.storage.setItem(String(key), JSON.stringify(value));
   }
 
-  clear() {
-    this.store = {};
+  getItem<K extends keyof T>(key: K): T[K] | null {
+    const item = this.storage.getItem(String(key));
+    if (!item) return null;
+    try {
+      return JSON.parse(item) as T[K];
+    } catch (_error) {
+      return null;
+    }
   }
 
-  getItem(key) {
-    return this.store[key] || null;
+  removeItem<K extends keyof T>(key: K): void {
+    this.storage.removeItem(String(key));
   }
 
-  setItem(key, value) {
-    this.store[key] = String(value);
-  }
-
-  removeItem(key) {
-    delete this.store[key];
-  }
-
-  get length() {
-    return Object.keys(this.store).length;
-  }
-
-  key(index) {
-    return Object.keys(this.store)[index] || null;
+  clear(): void {
+    this.storage.clear();
   }
 }
 
@@ -40,7 +48,7 @@ export class ClientStorage {
  * @param object - The row to update.
  * @returns The updated row.
  */
-declare type storageUpdateCallback = (
+export type storageUpdateCallback = (
   object: ClientStorageFields
 ) => ClientStorageDataFields;
 
@@ -49,12 +57,12 @@ declare type storageUpdateCallback = (
  * @param object - The row to filter.
  * @returns True if the row should be included, false otherwise.
  */
-declare type storageUpdateCallbackFilter = (
+export type storageUpdateCallbackFilter = (
   object: ClientStorageFields
 ) => boolean;
 
 /** Fields that are specified at time of table creation and column definition */
-interface ClientStorageDataFields {
+export interface ClientStorageDataFields {
   [T: string]: any;
 }
 
@@ -62,7 +70,7 @@ interface ClientStorageDataFields {
  * The ROW_IDENTIFIER field is added to the data fields and is used to identify a row in the storage database.
  * The other data fields are the fields that comprise a given table definition.
  */
-interface ClientStorageFields extends ClientStorageDataFields {
+export interface ClientStorageFields extends ClientStorageDataFields {
   ROW_IDENTIFIER: string;
 }
 
@@ -71,7 +79,7 @@ interface ClientStorageFields extends ClientStorageDataFields {
  * @param field - The field to sort by.
  * @param direction - The direction to sort by (ASC or DESC).
  */
-type ClientStorageSortDirection = [string, "ASC" | "DESC"];
+export type ClientStorageSortDirection = [string, "ASC" | "DESC"];
 
 /**
  * A simple client side data storage library implemented using localStorage or a polyfill for Node.js environments depending on the desired storage engine.
@@ -135,7 +143,7 @@ function clientStore(
   }
 
   // if the storage database doesn't exist, create it
-  storageInstance = storage[storageIdentifier];
+  storageInstance = storage.getItem(storageIdentifier);
   if (
     !(
       storageInstance &&
@@ -461,11 +469,17 @@ function clientStore(
   }
 
   /**
-   * Deletes a storage database, and purges it from localStorage
+   * Deletes a storage database, and purges it from underlying storage via
+   * that storage's API and clear.
    */
   function dropStorage(): void {
     if (storage && storage.hasOwnProperty(storageIdentifier)) {
       delete storage[storageIdentifier];
+      const existingStore = storage.getItem(storageIdentifier);
+      if (existingStore) {
+        storage.removeItem(storageIdentifier);
+      }
+      storage.clear();
     }
     storageInstance = null;
   }

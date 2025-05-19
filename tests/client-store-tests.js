@@ -578,8 +578,9 @@ describe("clientStore", function () {
       dropStore.commit();
       assert(dropStore.tableExists("test_table"));
 
-      // Drop the storage
+      // Drop the storage and commit
       dropStore.dropStorage();
+      dropStore.commit();
 
       // Create a new store with the same name
       const newStore = clientStore("drop_test", localStorage);

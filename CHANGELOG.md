@@ -31,3 +31,9 @@
 
 - Added localStorageDB to exports so existing projects can shift from this to clientStore more easily.
 
+## 0.3.15
+
+- Added ClientStorageTyped to exports so existing projects can shift from this to clientStore more easily.
+ - Adjusted dropStorage to remove all storage keys that begin with the storePrefix.
+
+
