@@ -80,14 +80,18 @@ type ClientStorageSortDirection = [string, "ASC" | "DESC"];
  *
  * @param storeName - The name of the storage storage database.
  * @param storageEngine - The storage engine to use (localStorage or node-localstorage). Defaults to localStorage.
+ * @param storePrefix - The prefix to use for the storage identifier. Defaults to "clientstore_".
  * @returns A clientStore instance with methods for working with the storage database.
  */
 function clientStore(
   storeName: string,
-  storageEngine?: ClientStorage | typeof localStorage
+  storageEngine?: ClientStorage | typeof localStorage,
+  storePrefix?: string
 ) {
-  const storePrefix = "store_";
-  const storageIdentifier = storePrefix + storeName;
+  const storePrefixDefault = "clientstore_"; // internal prefix for the storage identifier to separate key and "namespace" the dataset
+  const storageIdentifier = storePrefix
+    ? storePrefix + storeName
+    : storePrefixDefault + storeName;
   let storageExists = false; // determines whether a new storage database was created during an object initialization
   let storageInstance = null;
   // Determine the appropriate storage mechanism based on environment

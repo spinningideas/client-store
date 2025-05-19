@@ -22,3 +22,8 @@
 - Remove support for sessionStorage as its not a storage engine that persists data in the desired fashion for use cases this package is intended for.
 - Fix to include comments in typescript type definition files. 
 
+## 0.3.12
+
+- Added remaining updates to JSDOC comments.
+- Added support for custom storage prefix via storePrefix parameter.
+

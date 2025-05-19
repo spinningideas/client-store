@@ -1,13 +1,13 @@
 // Type definitions for clientStore
 
-/** 
- * Fields that are specified at time of table creation and column definition 
+/**
+ * Fields that are specified at time of table creation and column definition
  */
 interface ClientStorageDataFields {
   [T: string]: any;
 }
 
-/** 
+/**
  * Full set of fields that comprise a given table definition.
  * The ROW_IDENTIFIER field is added to the data fields and is used to identify a row in the storage database.
  * The other data fields are the fields that comprise a given table definition.
@@ -39,10 +39,7 @@ interface storageUpdateCallbackFilter {
  * @param field - The field to sort by.
  * @param direction - The direction to sort by (ASC or DESC).
  */
-interface ClientStorageSortDirection {
-  field: string;
-  direction: "ASC" | "DESC";
-}
+type ClientStorageSortDirection = [string, "ASC" | "DESC"];
 
 /**
  * Parameters for querying data from a table.
@@ -66,39 +63,46 @@ interface clientStore {
    * @returns {boolean} True if the storage database has been created, false otherwise.
    */
   storageHasBeenCreated(): boolean;
-  
+
   /**
    * Imports a JSON string into the storage database.
    * @param {string} json - The JSON string to import.
    */
   importStorage(json: string): void;
-  
+
   /**
-   * Exports the storage database as a JSON string.
-   * @returns {string} The JSON string representation of the storage database.
+   * Returns the entire storage database as serialized JSON.
+   * @description Retrieves the current state of the storage database as a JSON string.
+   * @returns {string} The serialized storage database.
    */
   exportStorage(): string;
-  
+
   /**
    * Drops the storage database.
    * This will delete all tables and data in the storage database.
    */
   dropStorage(): void;
-  
+
+  /**
+   * Commits the current state of the storage database to the storage engine.
+   * This is useful when you want to explicitly save the current state of the storage database.
+   */
+  commit(): void;
+
   /**
    * Checks if a table exists in the storage database.
    * @param {string} tableName - The name of the table to check.
    * @returns {boolean} True if the table exists, false otherwise.
    */
   tableExists(tableName: string): boolean;
-  
+
   /**
    * Gets the fields of a table.
    * @param {string} tableName - The name of the table.
    * @returns {string[]} Array of field names.
    */
   tableFields(tableName: string): string[];
-  
+
   /**
    * Creates a new table in the storage database.
    * @param {string} tableName - The name of the table to create.
@@ -106,7 +110,7 @@ interface clientStore {
    * @returns {boolean} True if the table was created, false otherwise.
    */
   createTable(tableName: string, fields: string[]): boolean;
-  
+
   /**
    * Alters a table by adding new fields.
    * @param {string} tableName - The name of the table to alter.
@@ -119,19 +123,19 @@ interface clientStore {
     newFields: string[] | string,
     defaultValues?: ClientStorageDataFields | string
   ): boolean;
-  
+
   /**
    * Drops a table from the storage database.
    * @param {string} tableName - The name of the table to drop.
    */
   dropTable(tableName: string): void;
-  
+
   /**
    * Truncates a table (removes all rows).
    * @param {string} tableName - The name of the table to truncate.
    */
   truncate(tableName: string): void;
-  
+
   /**
    * Checks if a column exists in a table.
    * @param {string} tableName - The name of the table.
@@ -139,41 +143,41 @@ interface clientStore {
    * @returns {boolean} True if the column exists, false otherwise.
    */
   columnExists(tableName: string, fieldName: string): boolean;
-  
+
   /**
    * Commits changes to storage.
    * This will persist any changes made to the storage database.
    * @returns {boolean} True if the commit was successful, false otherwise.
    */
   commit(): boolean;
-  
+
   /**
    * Gets an item from storage by key.
    * @param {string} key - The key of the item to get.
    * @returns {string | null} The value of the item, or null if the item does not exist.
    */
   getItem(key: string): string | null;
-  
+
   /**
    * Sets an item in storage.
    * @param {string} key - The key of the item to set.
    * @param {string} value - The value to set.
    */
   setItem(key: string, value: string): void;
-  
+
   /**
    * Gets the number of tables in the storage database.
    * @returns {number} The number of tables.
    */
   tableCount(): number;
-  
+
   /**
    * Gets the number of rows in a table.
    * @param {string} tableName - The name of the table.
    * @returns {number} The number of rows in the table.
    */
   rowCount(tableName: string): number;
-  
+
   /**
    * Queries data from a table.
    * @param {string} tableName - The name of the table to query.
@@ -192,7 +196,7 @@ interface clientStore {
     sort?: ClientStorageSortDirection[],
     distinct?: string[]
   ): ClientStorageFields[];
-  
+
   /**
    * Queries data from a table using query parameters.
    * @param {string} tableName - The name of the table to query.
@@ -203,7 +207,7 @@ interface clientStore {
     tableName: string,
     params: clientStoreQueryParams
   ): ClientStorageFields[];
-  
+
   /**
    * Queries all data from a table.
    * If no params are provided, all rows are returned.
@@ -215,7 +219,7 @@ interface clientStore {
     tableName: string,
     query?: ClientStorageDataFields | storageUpdateCallbackFilter
   ): ClientStorageFields[];
-  
+
   /**
    * Inserts a row into a table.
    * @param {string} tableName - The name of the table.
@@ -223,7 +227,7 @@ interface clientStore {
    * @returns {string | null} The ROW_IDENTIFIER of the inserted row, or null if the insertion failed.
    */
   insert(tableName: string, data: ClientStorageDataFields): string | null;
-  
+
   /**
    * Updates rows in a table.
    * @param {string} tableName - The name of the table.
@@ -236,31 +240,31 @@ interface clientStore {
     ids: string[],
     updateFunction: storageUpdateCallback
   ): number;
-  
+
   /**
-   * Upserts data into a table (insert if not exists, update if exists).
+   * Inserts or updates rows in a table.
    * @param {string} tableName - The name of the table.
    * @param {ClientStorageDataFields | storageUpdateCallbackFilter | null} query - The query to match rows.
    * @param {ClientStorageDataFields} data - The data to insert or update.
-   * @returns {string[] | null} Array of ROW_IDENTIFIERs of the updated rows, or null if the operation failed.
+   * @returns {string[]} Array of ROW_IDENTIFIERs of the inserted or updated rows.
    */
   upsert(
     tableName: string,
     query: ClientStorageDataFields | storageUpdateCallbackFilter | null,
     data: ClientStorageDataFields
-  ): string[] | null;
-  
+  ): string[];
+
   /**
-   * Deletes rows from a table.
+   * Deletes rows from a table based on the provided query.
    * @param {string} tableName - The name of the table.
-   * @param {string[] | ClientStorageDataFields | storageUpdateCallbackFilter} query - The query to match rows to delete.
+   * @param {string[] | ClientStorageDataFields | storageUpdateCallbackFilter} query - The query to filter the rows to delete.
    * @returns {number} The number of rows deleted.
    */
   deleteRows(
     tableName: string,
     query: string[] | ClientStorageDataFields | storageUpdateCallbackFilter
   ): number;
-  
+
   /**
    * Creates a table and inserts data in one operation.
    * @param {string} tableName - The name of the table to create.
@@ -277,17 +281,20 @@ interface clientStore {
 export {};
 
 /**
- * A simple client side data storage library primarily designed to work in a web based application environment that uses a modern web browser.
+ * A simple client side data storage library implemented using localStorage or a polyfill for Node.js environments depending on the desired storage engine.
  * clientStore provides a set of functions to store structured data like a database containing tables and rows of data in a tabular format.
- * It supports query operations and standard CRUD operations in both browser and Node.js environments.
- * 
- * @param {string} storeName - The name of the storage database.
- * @param {any} [storageEngine] - The storage engine to use. In browser environments, this is typically localStorage.
- *                               In Node.js environments, this can be any object that implements the Storage interface (getItem, setItem, removeItem),
- *                               such as node-localstorage. Defaults to localStorage in browser environments or an in-memory storage in Node.js environments.
- * @returns {clientStore} A clientStore instance with methods for working with the storage database.
+ * It supports query operations and standard CRUD operations.
+ *
+ * @param storeName - The name of the storage storage database.
+ * @param storageEngine - The storage engine to use (localStorage or node-localstorage). Defaults to localStorage.
+ * @param storePrefix - The prefix to use for the storage identifier. Defaults to "clientstore_".
+ * @returns A clientStore instance with methods for working with the storage database.
  */
-declare function clientStore(storeName: string, storageEngine?: any): clientStore;
+declare function clientStore(
+  storeName: string,
+  storageEngine?: ClientStorage | typeof localStorage,
+  storePrefix?: string
+): clientStore;
 
 // Export the factory function as default
 export default clientStore;
@@ -296,6 +303,9 @@ export default clientStore;
  * Augment the Window interface to include clientStore
  */
 declare global {
+  /**
+   * Extend the Window interface to include the clientStore global.
+   */
   interface Window {
     clientStore: typeof clientStore;
   }
