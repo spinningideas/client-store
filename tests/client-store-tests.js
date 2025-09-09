@@ -353,7 +353,7 @@ describe("clientStore", function () {
     });
 
     it("should delete data from a table", function () {
-      const id = store.insert("books", {
+      const newBookForDelete = store.insert("books", {
         code: "B001",
         title: "Test Book",
         author: "Test Author",
@@ -361,11 +361,13 @@ describe("clientStore", function () {
         copies: 10,
       });
 
-      if (!id) throw new Error("Failed to insert data");
+      if (!newBookForDelete) throw new Error("Failed to insert data");
 
       try {
         // Delete the row
-        const deleteCount = store.deleteRows("books", [id]);
+        const deleteCount = store.deleteRows("books", {
+          id: newBookForDelete.id,
+        });
         store.commit();
 
         // If deleteRows returns a count, verify it

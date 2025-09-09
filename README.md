@@ -656,10 +656,10 @@ moviesStore.commit();
 		</tr>
 		<tr>
 			<td>deleteRows()</td>
-			<td>tableName, ids</td>
-			<td>Deletes rows, given a list of their ROW_IDENTIFIERs in a table.<br />
+			<td>tableName, params</td>
+			<td>Deletes rows, given params input that is a query that returns the rows to delete.<br />
 				- tableName: The name of the table.<br />
-				- ids: Array of ROW_IDENTIFIERs to delete.<br />
+				- params: query that returns the rows to delete.<br />
 				Returns the number of rows deleted.
 			</td>
 		</tr>

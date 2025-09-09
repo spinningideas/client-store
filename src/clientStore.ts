@@ -782,23 +782,31 @@ function clientStore(
   }
 
   /**
-   * Deletes rows, given a list of their ROW_IDENTIFIERs in a table
+   * Deletes rows, given params input that is a query that returns the rows to delete
    * @param tableName
-   * @param ids
-   * @returns
+   * @param params query that returns the rows to delete
+   * @returns number of rows deleted
    */
-  function deleteRows(tableName: string, ids: string[]): number {
+  function deleteRows(
+    tableName: string,
+    params?: string[] | ClientStorageDataFields | storageUpdateCallbackFilter
+  ): number {
     tableMissingThrowError(tableName);
     let deletedCount = 0;
+    const rowIdentifiers = queryByValues(
+      tableName,
+      validFields(tableName, params as ClientStorageDataFields)
+    );
 
-    for (let i = 0; i < ids.length; i++) {
-      if (storageInstance.data[tableName].hasOwnProperty(ids[i])) {
-        delete storageInstance.data[tableName][ids[i]];
+    for (let i = 0; i < rowIdentifiers.length; i++) {
+      if (storageInstance.data[tableName].hasOwnProperty(rowIdentifiers[i])) {
+        delete storageInstance.data[tableName][rowIdentifiers[i]];
         deletedCount++;
       }
     }
     return deletedCount;
   }
+
   /**
    * Update rows having given row identifiers
    * @param tableName
