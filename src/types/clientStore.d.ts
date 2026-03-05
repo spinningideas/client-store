@@ -234,27 +234,27 @@ export interface ClientStore {
    * @param {number} [start] - The starting index of the rows to return.
    * @param {ClientStorageSortDirection[]} [sort] - Array of sort conditions.
    * @param {string[]} [distinct] - Array of fields whose values have to be unique in the returned rows.
-   * @returns {ClientStorageFields[]} Array of rows matching the query.
+   * @returns {T[]} Array of rows matching the query.
    */
-  query(
+  query<T = ClientStorageDataFields>(
     tableName: string,
     query?: ClientStorageDataFields | storageUpdateCallbackFilter | string[],
     limit?: number,
     start?: number,
     sort?: ClientStorageSortDirection[],
     distinct?: string[],
-  ): ClientStorageFields[];
+  ): T[];
 
   /**
    * Queries data from a table using query parameters.
    * @param {string} tableName - The name of the table to query.
    * @param {clientStoreQueryParams} params - The query parameters.
-   * @returns {ClientStorageFields[]} Array of rows matching the query.
+   * @returns {T[]} Array of rows matching the query.
    */
-  query(
+  query<T = ClientStorageDataFields>(
     tableName: string,
     params: clientStoreQueryParams,
-  ): ClientStorageFields[];
+  ): T[];
 
   /**
    * Queries all data from a table.

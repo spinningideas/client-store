@@ -791,7 +791,7 @@ function clientStore(
     tableName: string,
     params?: string[] | ClientStorageDataFields | storageUpdateCallbackFilter,
   ): T[] {
-    return query(tableName, params) as unknown as T[];
+    return query(tableName, params);
   }
 
   /**

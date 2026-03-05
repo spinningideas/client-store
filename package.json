@@ -1,6 +1,6 @@
 {
   "name": "@spinningideas/client-store",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "clientStore is a simple client-side storage layer backed by localStorage (or ClientStorage compatible storage engine) that provides a set of functions to store structured data like a database with tables and queries.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
