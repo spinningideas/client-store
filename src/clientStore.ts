@@ -735,9 +735,9 @@ function clientStore(
    * @param {number} [limit] - The maximum number of rows to be returned
    * @param {ClientStorageSortDirection[]} [sort] - Array of sort conditions, each one of which is an array with two values
    * @param {string[]} [distinct] - Array of fields whose values have to be unique in the returned rows
-   * @returns {ClientStorageFields[]} Array of rows matching the query
+   * @returns {T[]} Array of rows matching the query
    */
-  function query(
+  function query<T = ClientStorageDataFields>(
     tableName: string,
     queryParam?:
       | string[]
@@ -747,7 +747,7 @@ function clientStore(
     limit?: number,
     sort?: ClientStorageSortDirection[],
     distinct?: string[],
-  ): ClientStorageFields[] {
+  ): T[] {
     tableMissingThrowError(tableName);
 
     let rowIdentifiers: string[] = [];
@@ -770,7 +770,14 @@ function clientStore(
       );
     }
 
-    return select(tableName, rowIdentifiers, start, limit, sort, distinct);
+    return select(
+      tableName,
+      rowIdentifiers,
+      start,
+      limit,
+      sort,
+      distinct,
+    ) as unknown as T[];
   }
 
   /**
@@ -778,7 +785,7 @@ function clientStore(
    * If no params are provided, all rows are returned.
    * @param {string} tableName - The name of the table
    * @param {string[]|ClientStorageDataFields|storageUpdateCallbackFilter} params - The list of fields use in the select
-   * @returns {ClientStorageFields[]} Array of rows matching the query
+   * @returns {T[]} Array of rows matching the query
    */
   function queryAll<T = ClientStorageDataFields>(
     tableName: string,
