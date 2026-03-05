@@ -2,9 +2,9 @@
 
 A simple data storage library primarily design to work in a web based application environment that uses a modern web browser. It uses localStorage, while in Node.js it attempts to provide a compatible in-memory implementation. It provides a set of functions to store structured data like a database containing tables and supporting queries and standard CRUD operations for data. It provides basic insert/update/delete/query capabilities similar to a database and extend what is available in localStorage. The structured data is stored as serialized JSON in the selected storage engine.
 
-## WARNING (Alpha Version)
+## WARNING (Beta Version)
 
-This code is in active development and should not yet be used in production. The API is subject to change. There is ideation and work in progress to extend the possible storage engines to include IndexedDB and other storage engines including in-memory storage and sync to remote storage engines. This was part of the driver for the fork of localStorageDB.
+This code is in somewhat activedevelopment and should not yet be used in production. The API is subject to change. There is ideation and work in progress to extend the possible storage engines to include IndexedDB and other storage engines including in-memory storage and sync to remote storage engines. This was part of the driver for the fork of localStorageDB.
 
 # License
 
@@ -12,7 +12,7 @@ This code is in active development and should not yet be used in production. The
 
 ## Credits and Inspiration
 
-- [localStorageDB](https://github.com/knadh/localStorageDB) This package was **forked** from localStorageDB which was created by Kailash Nadh (https://github.com/knadh/localStorageDB) and the code was updated to modern JavaScript standards and TypeScript support added and naming changed except for the public methods. Many thanks to Kailash Nadh for the original implementation and inspiration. The package appears to no longer be maintained and projects that depended on the package needed to evolve in breaking fashion with new features. The original forked code that was the basis for this package is available in this repo under src folder in the `localStorageDB.ts` file and this code will be used as a reference for future development and will NOT be altered. - Initial changes (made in new code forked from localStorageDB.ts into clientStore.ts) include: - Updated to modern JavaScript standards (ES6+, parameters pascalCase etc) - Added JSDoc comments - Renamed ID record identifier from "ID" to "ROW_IDENTIFIER" to be more consistent with SQL naming conventions and change datatype from integer to uuid - Change internal methods and structure in preparation for adding support for other storage engines and doing more work
+- [localStorageDB](https://github.com/knadh/localStorageDB) This package was **forked** from localStorageDB which was created by Kailash Nadh (https://github.com/knadh/localStorageDB) and the code was updated to modern JavaScript standards and TypeScript support added and naming changed except for the public methods. Many thanks to Kailash Nadh for the original implementation and inspiration. The package appears to no longer be maintained and projects that depended on the package needed to evolve in breaking fashion with new features. The original forked code that was the basis for this package is available in this repo under archive folder in the `localStorageDB.ts_` file and this code will be used as a reference for future development and will NOT be altered. - Initial changes (made in new code forked from localStorageDB.ts into clientStore.ts) include: - Updated to modern JavaScript standards (ES6+, parameters pascalCase etc) - Added JSDoc comments - Renamed ID record identifier from "ID" to "ROW_IDENTIFIER" to be more consistent with SQL naming conventions and change datatype from integer to uuid - Change internal methods and structure in preparation for adding support for other storage engines and doing more work
 - [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
 - https://github.com/dreamsavior/Better-localStorage
 - [lowdb](https://github.com/typicode/lowdb)
@@ -70,7 +70,7 @@ Browsers need to support "Local Storage" and "Session Storage" in order for clie
 
 ## Node.js
 
-In Node.js environments, the library provides a compatible in-memory storage implementation by default via global.clientStoreMemoryStorage, or you can use a npm storage implementation like `node-localstorage `.
+In Node.js environments, the library provides a compatible in-memory storage implementation by default via global.clientStoreMemoryStorage, or you can use a npm storage implementation like `node-localstorage`.
 
 # Usage / Examples
 
@@ -184,83 +184,81 @@ if (
 
 ```javascript
 // Define query parameters
-const queryParams = {
-  query: { releaseYear: 1980 },
-};
+const queryParams = { releaseYear: 1980 };
 
 // Simple select queries
 const movies1980 = moviesStore.query("movies", queryParams);
 
 // Query with multiple conditions
 const specificMovie = moviesStore.query("movies", {
-  query: { releaseYear: 1977, boxOffice: 775.4 },
+  releaseYear: 1977,
+  boxOffice: 775.4,
 });
 
 // Select all movies (no query parameters)
 const allMovies = moviesStore.query("movies");
 
 // Select all movies released after 1979 using a filter function
-const newerMovies = moviesStore.query("movies", {
-  query: (row) => {
-    // The callback function is applied to every row in the table
-    if (row.releaseYear > 1979) {
-      // If it returns true, the row is selected
-      return true;
-    } else {
-      return false;
-    }
-  },
+const newerMovies = moviesStore.query("movies", (row) => {
+  // The callback function is applied to every row in the table
+  if (row.releaseYear > 1979) {
+    // If it returns true, the row is selected
+    return true;
+  } else {
+    return false;
+  }
 });
 
 // Or with a more concise arrow function
-const newerMoviesAlt = moviesStore.query("movies", {
-  query: (row) => row.releaseYear > 1979,
-});
+const newerMoviesAlt = moviesStore.query(
+  "movies",
+  (row) => row.releaseYear > 1979,
+);
 
-// Select movies with box office over 500 million, limited to 2 results
-const highGrossing = moviesStore.query("movies", {
-  query: (row) => row.boxOffice > 500,
-  limit: 2,
-});
+// Select movies with box office over 500 million, limited to 2 results (start: 0, limit: 2)
+const highGrossing = moviesStore.query(
+  "movies",
+  (row) => row.boxOffice > 500,
+  0,
+  2,
+);
 
 // Select the best movie (using the boolean field)
-const bestMovie = moviesStore.query("movies", {
-  query: { isBest: true },
-});
+const bestMovie = moviesStore.query("movies", { isBest: true });
 ```
 
 ### Sorting Data
 
 ```javascript
 // Select 2 rows sorted in ascending order by boxOffice
-const sortedMovies = moviesStore.query("movies", {
-  limit: 2,
-  sort: [["boxOffice", "ASC"]],
-});
+const sortedMovies = moviesStore.query("movies", null, 0, 2, [
+  ["boxOffice", "ASC"],
+]);
 
 // Select all rows first sorted in ascending order by boxOffice, and then, in descending, by releaseYear
-const multiSortedMovies = moviesStore.query("movies", {
-  sort: [
-    ["boxOffice", "ASC"],
-    ["releaseYear", "DESC"],
-  ],
-});
+const multiSortedMovies = moviesStore.query("movies", null, 0, null, [
+  ["boxOffice", "ASC"],
+  ["releaseYear", "DESC"],
+]);
 
-// Combine query, limit and sort
-const filteredSortedMovies = moviesStore.query("movies", {
-  query: { releaseYear: 1980 },
-  limit: 1,
-  sort: [["boxOffice", "ASC"]],
-});
+// Combine query, limit (start: 0, limit: 1) and sort
+const filteredSortedMovies = moviesStore.query(
+  "movies",
+  { releaseYear: 1980 },
+  0,
+  1,
+  [["boxOffice", "ASC"]],
+);
 ```
 
 ### Getting Distinct rows of data
 
 ```javascript
 // Get records with distinct releaseYear and boxOffice values
-const distinctMovies = moviesStore.query("movies", {
-  distinct: ["releaseYear", "boxOffice"],
-});
+const distinctMovies = moviesStore.query("movies", null, 0, null, null, [
+  "releaseYear",
+  "boxOffice",
+]);
 ```
 
 ### Example Query Results
@@ -270,7 +268,7 @@ const distinctMovies = moviesStore.query("movies", {
 // A "ROW_IDENTIFIER" field with the internal auto-incremented identifier of the row is also included
 // Thus, ROW_IDENTIFIER is a reserved field name
 
-const bestMovie = moviesStore.query("movies", { query: { isBest: true } });
+const bestMovie = moviesStore.query("movies", { isBest: true });
 console.log(bestMovie);
 
 /* Results:
@@ -296,7 +294,7 @@ const updatedCount1 = moviesStore.update(
   { releaseYear: 1977 },
   (row) => {
     return { boxOffice: 800.0 };
-  }
+  },
 );
 console.log(`Updated ${updatedCount1} records`);
 
@@ -304,7 +302,7 @@ console.log(`Updated ${updatedCount1} records`);
 const updatedCount2 = moviesStore.update(
   "movies",
   (row) => row.releaseYear < 1980, // Simplified arrow function with implicit return
-  (row) => ({ boxOffice: 800.0 }) // Arrow function with implicit return of object
+  (row) => ({ boxOffice: 800.0 }), // Arrow function with implicit return of object
 );
 console.log(`Updated ${updatedCount2} records`);
 
@@ -325,7 +323,7 @@ const result = moviesStore.upsert(
     releaseYear: 1983,
     boxOffice: 500.5, // box office in millions of dollars
     isBest: false,
-  }
+  },
 );
 
 // You can also use upsertOrUpdate which is an alias for upsert
@@ -338,7 +336,7 @@ const result2 = moviesStore.upsertOrUpdate(
     releaseYear: 2015,
     boxOffice: 2068.0,
     isBest: false,
-  }
+  },
 );
 
 // If result is null, insertion failed
@@ -381,7 +379,7 @@ userStore.insert("users", {
 userStore.commit();
 
 // Query the data
-const activeUsers = userStore.query("users", { query: { active: true } });
+const activeUsers = userStore.query("users", { active: true });
 console.log(activeUsers);
 ```
 
@@ -415,7 +413,7 @@ configStore.commit();
 
 // Query the data
 const themeSettings = configStore.query("settings", {
-  query: { key: "theme" },
+  key: "theme",
 });
 console.log(themeSettings);
 ```
@@ -448,15 +446,21 @@ console.log(items);
 
 ```javascript
 // Delete all movies from 1977
-const deletedCount1 = moviesStore.deleteRows("movies", { releaseYear: 1977 });
-console.log(`Deleted ${deletedCount1} records`);
+const deletedCount1977 = moviesStore.deleteRows("movies", {
+  releaseYear: 1977,
+});
+console.log(`Deleted ${deletedCount1977} records`);
 
 // Delete all movies published before 1980
-const deletedCount2 = moviesStore.deleteRows(
+const deletedCountBefore1980 = moviesStore.deleteRows(
   "movies",
-  (row) => row.releaseYear < 1980
+  (row) => row.releaseYear < 1980,
 );
-console.log(`Deleted ${deletedCount2} records`);
+console.log(`Deleted ${deletedCountBefore1980} records`);
+
+// Delete all movies
+const deletedCountAll = moviesStore.deleteRows("movies");
+console.log(`Deleted ${deletedCountAll} records`);
 
 // Commit the deletions to localStorage
 moviesStore.commit();
@@ -700,6 +704,12 @@ const store = new clientStore("myDatabase");
 ```
 
 ## Publishing to npm
+
+To log in to npm and publish your package, you can run the following command directly in your terminal:
+
+```bash
+npm login
+```
 
 To publish a new version of the package to npm:
 

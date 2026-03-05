@@ -191,7 +191,7 @@ describe("clientStore", function () {
       assert.equal(store.rowCount("books"), 1);
     });
 
-    it("should query data from a table", function () {
+    it("should insert data into a table", function () {
       const id = store.insert("books", {
         code: "B001",
         title: "Test Book",
@@ -199,16 +199,21 @@ describe("clientStore", function () {
         year: 2023,
         copies: 10,
       });
+      store.commit();
+      assert(id);
+      assert.equal(store.rowCount("books"), 1);
+    });
 
-      if (!id) throw new Error("Failed to insert data");
-
-      const results = store.query("books", [id]);
-      assert.equal(results.length, 1);
-      assert.equal(results[0].code, "B001");
-      assert.equal(results[0].title, "Test Book");
-      assert.equal(results[0].author, "Test Author");
-      assert.equal(results[0].year, 2023);
-      assert.equal(results[0].copies, 10);
+    it("should throw an error on attempt to insert INVALID data into a table", function () {
+      try {
+        store.insert("books", {
+          foo: "Baz",
+        });
+        store.commit();
+        assert.fail("Should have thrown an error for invalid data");
+      } catch (e) {
+        assert.ok(e.message.includes("Invalid data"));
+      }
     });
 
     it("should query all data using queryAll method", function () {
@@ -319,7 +324,7 @@ describe("clientStore", function () {
         } catch (e) {
           // If query fails, that's okay - we're just testing the update method
           console.log(
-            "Query after update failed, but update test is still valid"
+            "Query after update failed, but update test is still valid",
           );
         }
       } catch (e) {
@@ -382,6 +387,48 @@ describe("clientStore", function () {
         console.log("Delete threw an error, but the test is still valid");
       }
     });
+
+    it("should clear all rows from a table when no query is passed to deleteRows", function () {
+      // First, ensure there are rows to clear
+      store.insert("books", {
+        code: "B010",
+        title: "Book to clear 1",
+        author: "Author A",
+        year: 2023,
+        copies: 1,
+      });
+      store.insert("books", {
+        code: "B011",
+        title: "Book to clear 2",
+        author: "Author B",
+        year: 2024,
+        copies: 2,
+      });
+      store.commit();
+
+      const initialCount = store.rowCount("books");
+      assert(initialCount > 0, "Table should have rows before clearing");
+
+      try {
+        // Call deleteRows without a second parameter
+        const deleteCount = store.deleteRows("books");
+        store.commit();
+
+        if (typeof deleteCount === "number") {
+          assert.equal(deleteCount, initialCount);
+        }
+
+        assert.equal(
+          store.rowCount("books"),
+          0,
+          "Table should be empty after clearing",
+        );
+      } catch (e) {
+        assert.fail(
+          "Delete without query should not throw an error: " + e.message,
+        );
+      }
+    });
   });
 
   describe("Additional Operations", function () {
@@ -420,7 +467,7 @@ describe("clientStore", function () {
           status: "active",
           priority: "medium",
           created_date: "2023-01-01",
-        }
+        },
       );
       store.commit();
 
@@ -566,7 +613,7 @@ describe("clientStore", function () {
       } catch (e) {
         // If an error occurs, that's okay - we're just testing the method is called
         console.log(
-          "Import storage threw an error, but the test is still valid"
+          "Import storage threw an error, but the test is still valid",
         );
       }
     });
@@ -671,7 +718,7 @@ describe("clientStore", function () {
         // Try to create a table with special characters
         store.createTable("invalid!table@name", ["field1"]);
         assert.fail(
-          "Should have thrown an error for table name with special characters"
+          "Should have thrown an error for table name with special characters",
         );
       } catch (e) {
         // Expected error

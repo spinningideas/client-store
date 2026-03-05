@@ -49,7 +49,7 @@ export class ClientStorageTyped<T extends Record<string, any>> {
  * @returns The updated row.
  */
 export type storageUpdateCallback = (
-  object: ClientStorageFields
+  object: ClientStorageFields,
 ) => ClientStorageDataFields;
 
 /**
@@ -58,7 +58,7 @@ export type storageUpdateCallback = (
  * @returns True if the row should be included, false otherwise.
  */
 export type storageUpdateCallbackFilter = (
-  object: ClientStorageFields
+  object: ClientStorageFields,
 ) => boolean;
 
 /** Fields that are specified at time of table creation and column definition */
@@ -94,7 +94,7 @@ export type ClientStorageSortDirection = [string, "ASC" | "DESC"];
 function clientStore(
   storeName: string,
   storageEngine?: ClientStorage | typeof localStorage,
-  storePrefix?: string
+  storePrefix?: string,
 ) {
   const storePrefixDefault = "clientstore_"; // internal prefix for the storage identifier to separate key and "namespace" the dataset
   const storageIdentifier = storePrefix
@@ -156,7 +156,7 @@ function clientStore(
       handleError(
         "The name '" +
           storeName +
-          "' contains invalid characters. Only letters, numbers, and underscores are allowed."
+          "' contains invalid characters. Only letters, numbers, and underscores are allowed.",
       );
     } else {
       storageInstance = { tables: {}, data: {} };
@@ -206,7 +206,7 @@ function clientStore(
   function getRowIdentifiers(
     tableName: string,
     limit?: number,
-    start?: number
+    start?: number,
   ): string[] {
     tableMissingThrowError(tableName);
     let rowIds: string[] = [];
@@ -236,7 +236,7 @@ function clientStore(
    */
   function sortResults(
     field: string,
-    order?: string
+    order?: string,
   ): (x: ClientStorageFields, y: ClientStorageFields) => number {
     return function (x: ClientStorageFields, y: ClientStorageFields): number {
       // case insensitive comparison for string values
@@ -270,7 +270,7 @@ function clientStore(
     start?: number,
     limit?: number,
     sort?: ClientStorageSortDirection[],
-    distinct?: string[]
+    distinct?: string[],
   ): ClientStorageFields[] {
     let rowId: string | null = null,
       results: ClientStorageFields[] = [],
@@ -286,7 +286,7 @@ function clientStore(
     if (sort && sort instanceof Array) {
       for (let i = 0; i < sort.length; i++) {
         results.sort(
-          sortResults(sort[i][0], sort[i].length > 1 ? sort[i][1] : null)
+          sortResults(sort[i][0], sort[i].length > 1 ? sort[i][1] : null),
         );
       }
     }
@@ -352,7 +352,7 @@ function clientStore(
     tableName: string,
     data: ClientStorageDataFields,
     limit?: number,
-    start?: number
+    start?: number,
   ): string[] {
     let rowIds: string[] = [];
     let exists = false;
@@ -415,7 +415,7 @@ function clientStore(
     tableName: string,
     queryFunction: storageUpdateCallbackFilter,
     limit?: number,
-    start?: number
+    start?: number,
   ): string[] {
     let rowIds: string[] = [];
     let row = null;
@@ -587,7 +587,7 @@ function clientStore(
       handleError(
         "The table name name '" +
           tableName +
-          "' contains invalid characters. Only letters, numbers, and underscores are allowed."
+          "' contains invalid characters. Only letters, numbers, and underscores are allowed.",
       );
     }
     storageInstance.tables[tableName] = { fields: fields };
@@ -622,11 +622,11 @@ function clientStore(
    */
   function createTableWithData(
     tableName: string,
-    data: ClientStorageDataFields[]
+    data: ClientStorageDataFields[],
   ) {
     if (typeof data !== "object" || !data.length || data.length < 1) {
       handleError(
-        "Data supplied isn't in object form. Example: [{k:v,k:v},{k:v,k:v} ..]"
+        "Data supplied isn't in object form. Example: [{k:v,k:v},{k:v,k:v} ..]",
       );
       return false;
     }
@@ -643,7 +643,7 @@ function clientStore(
       for (let i = 0; i < data.length; i++) {
         if (!insert(tableName, data[i])) {
           handleError(
-            "Failed to insert record: [" + JSON.stringify(data[i]) + "]"
+            "Failed to insert record: [" + JSON.stringify(data[i]) + "]",
           );
         }
       }
@@ -660,7 +660,7 @@ function clientStore(
   function alterTable(
     tableName: string,
     newFields: string[],
-    defaultValues?: ClientStorageDataFields | string
+    defaultValues?: ClientStorageDataFields | string,
   ): void {
     tableMissingThrowError(tableName);
     storageInstance.tables[tableName].fields =
@@ -710,12 +710,14 @@ function clientStore(
    */
   function insert(
     tableName: string,
-    data: ClientStorageDataFields
+    data: ClientStorageDataFields,
   ): string | null {
     tableMissingThrowError(tableName);
     data = validateData(tableName, data);
     if (!data) {
-      return null;
+      return handleError(
+        "Invalid data supplied for table: " + JSON.stringify(data),
+      );
     }
 
     const rowIdentifier = generateId();
@@ -725,9 +727,10 @@ function clientStore(
   }
 
   /**
-   * Select rows, given a list of ROW_IDENTIFIERs of rows in a table
+   * Select rows from a table based on various query parameters (IDs, key-value pairs, or a filter function).
+   * If no query parameters are provided, all rows are returned.
    * @param {string} tableName - The name of the table
-   * @param {string[]} ids - Array of ROW_IDENTIFIERs to select
+   * @param {string[]|ClientStorageDataFields|storageUpdateCallbackFilter} [queryParam] - Optional. An object with key-value pairs to match, or a filter function.
    * @param {number} [start] - The number of rows to skip from the beginning (offset)
    * @param {number} [limit] - The maximum number of rows to be returned
    * @param {ClientStorageSortDirection[]} [sort] - Array of sort conditions, each one of which is an array with two values
@@ -743,7 +746,7 @@ function clientStore(
     start?: number,
     limit?: number,
     sort?: ClientStorageSortDirection[],
-    distinct?: string[]
+    distinct?: string[],
   ): ClientStorageFields[] {
     tableMissingThrowError(tableName);
 
@@ -757,11 +760,14 @@ function clientStore(
       // the query has key-value pairs provided
       rowIdentifiers = queryByValues(
         tableName,
-        validFields(tableName, queryParam as ClientStorageDataFields)
+        validFields(tableName, queryParam as ClientStorageDataFields),
       );
     } else if (typeof queryParam === "function") {
       // the query is a function
-      rowIdentifiers = queryByFunction(tableName, queryParam);
+      rowIdentifiers = queryByFunction(
+        tableName,
+        queryParam as storageUpdateCallbackFilter,
+      );
     }
 
     return select(tableName, rowIdentifiers, start, limit, sort, distinct);
@@ -774,11 +780,11 @@ function clientStore(
    * @param {string[]|ClientStorageDataFields|storageUpdateCallbackFilter} params - The list of fields use in the select
    * @returns {ClientStorageFields[]} Array of rows matching the query
    */
-  function queryAll(
+  function queryAll<T = ClientStorageDataFields>(
     tableName: string,
-    params?: string[] | ClientStorageDataFields | storageUpdateCallbackFilter
-  ): ClientStorageFields[] {
-    return query(tableName, params);
+    params?: string[] | ClientStorageDataFields | storageUpdateCallbackFilter,
+  ): T[] {
+    return query(tableName, params) as unknown as T[];
   }
 
   /**
@@ -789,14 +795,27 @@ function clientStore(
    */
   function deleteRows(
     tableName: string,
-    params?: string[] | ClientStorageDataFields | storageUpdateCallbackFilter
+    params?: string[] | ClientStorageDataFields | storageUpdateCallbackFilter,
   ): number {
     tableMissingThrowError(tableName);
     let deletedCount = 0;
-    const rowIdentifiers = queryByValues(
-      tableName,
-      validFields(tableName, params as ClientStorageDataFields)
-    );
+
+    let rowIdentifiers: string[] = [];
+    if (!params) {
+      rowIdentifiers = getRowIdentifiers(tableName);
+    } else if (Array.isArray(params)) {
+      rowIdentifiers = params;
+    } else if (typeof params === "function") {
+      rowIdentifiers = queryByFunction(
+        tableName,
+        params as storageUpdateCallbackFilter,
+      );
+    } else if (typeof params === "object") {
+      rowIdentifiers = queryByValues(
+        tableName,
+        validFields(tableName, params as ClientStorageDataFields),
+      );
+    }
 
     for (let i = 0; i < rowIdentifiers.length; i++) {
       if (storageInstance.data[tableName].hasOwnProperty(rowIdentifiers[i])) {
@@ -817,7 +836,7 @@ function clientStore(
   function update(
     tableName: string,
     ids: string[],
-    updateFunction: storageUpdateCallback
+    updateFunction: storageUpdateCallback,
   ): number {
     tableMissingThrowError(tableName);
     let rowIdentifier = "";
@@ -827,7 +846,7 @@ function clientStore(
       rowIdentifier = ids[i];
 
       const updatedData = updateFunction(
-        clone(storageInstance.data[tableName][rowIdentifier])
+        clone(storageInstance.data[tableName][rowIdentifier]),
       );
 
       if (updatedData) {
@@ -843,7 +862,7 @@ function clientStore(
 
         storageInstance.data[tableName][rowIdentifier] = validFields(
           tableName,
-          newData
+          newData,
         );
         num++;
       }
@@ -863,7 +882,7 @@ function clientStore(
   function insertOrUpdate(
     tableName: string,
     query: ClientStorageDataFields | storageUpdateCallbackFilter | null,
-    data: ClientStorageDataFields
+    data: ClientStorageDataFields,
   ) {
     tableMissingThrowError(tableName);
     return upsert(tableName, query, data);
@@ -879,7 +898,7 @@ function clientStore(
   function upsert(
     tableName: string,
     query: ClientStorageDataFields | storageUpdateCallbackFilter | null,
-    data: ClientStorageDataFields
+    data: ClientStorageDataFields,
   ): string[] | null {
     tableMissingThrowError(tableName);
 
@@ -888,10 +907,13 @@ function clientStore(
       rowIds = getRowIdentifiers(tableName); // there is no query. applies to all records
     } else if (typeof query === "object") {
       // the query has key-value pairs provided
-      rowIds = queryByValues(tableName, validFields(tableName, query));
+      rowIds = queryByValues(
+        tableName,
+        validFields(tableName, query as ClientStorageDataFields),
+      );
     } else if (typeof query === "function") {
       // the query has a conditional map function provided
-      rowIds = queryByFunction(tableName, query);
+      rowIds = queryByFunction(tableName, query as storageUpdateCallbackFilter);
     }
 
     // no existing records matched, so insert a new row
@@ -973,7 +995,7 @@ function clientStore(
    */
   function validFields(
     tableName: string,
-    data: ClientStorageDataFields
+    data: ClientStorageDataFields,
   ): ClientStorageDataFields {
     let field = "";
     const newData: ClientStorageDataFields = {};
@@ -1008,12 +1030,26 @@ function clientStore(
   */
   function validateData(
     tableName: string,
-    data: ClientStorageDataFields
-  ): ClientStorageDataFields {
+    data: ClientStorageDataFields,
+  ): ClientStorageDataFields | null {
+    let hasOneValidField = false;
+    const tableFields = storageInstance.tables[tableName].fields;
+
+    for (let i = 0; i < tableFields.length; i++) {
+      if (data[tableFields[i]] !== undefined) {
+        hasOneValidField = true;
+        break;
+      }
+    }
+
+    if (!hasOneValidField) {
+      return null;
+    }
+
     let field = "";
     const newData: ClientStorageDataFields = {};
-    for (let i = 0; i < storageInstance.tables[tableName].fields.length; i++) {
-      field = storageInstance.tables[tableName].fields[i];
+    for (let i = 0; i < tableFields.length; i++) {
+      field = tableFields[i];
       newData[field] =
         data[field] === null || data[field] === undefined ? null : data[field];
     }
@@ -1048,6 +1084,9 @@ function clientStore(
     deleteRows,
   };
 }
+
+// Export the type definition so consumers can import it
+export type ClientStore = ReturnType<typeof clientStore>;
 
 // Export for TypeScript modules
 export default clientStore;

@@ -105,7 +105,7 @@ interface clientStoreQueryParams {
   distinct?: string[];
 }
 
-interface clientStore {
+export interface ClientStore {
   /**
    * Checks if the storage database has been created.
    * @returns {boolean} True if the storage database has been created, false otherwise.
@@ -169,7 +169,7 @@ interface clientStore {
   alterTable(
     tableName: string,
     newFields: string[] | string,
-    defaultValues?: ClientStorageDataFields | string
+    defaultValues?: ClientStorageDataFields | string,
   ): boolean;
 
   /**
@@ -242,7 +242,7 @@ interface clientStore {
     limit?: number,
     start?: number,
     sort?: ClientStorageSortDirection[],
-    distinct?: string[]
+    distinct?: string[],
   ): ClientStorageFields[];
 
   /**
@@ -253,7 +253,7 @@ interface clientStore {
    */
   query(
     tableName: string,
-    params: clientStoreQueryParams
+    params: clientStoreQueryParams,
   ): ClientStorageFields[];
 
   /**
@@ -263,10 +263,10 @@ interface clientStore {
    * @param {ClientStorageDataFields | storageUpdateCallbackFilter} [query] - The query to filter the data.
    * @returns {ClientStorageFields[]} Array of rows matching the query.
    */
-  queryAll(
+  queryAll<T = ClientStorageDataFields>(
     tableName: string,
-    query?: ClientStorageDataFields | storageUpdateCallbackFilter
-  ): ClientStorageFields[];
+    query?: ClientStorageDataFields | storageUpdateCallbackFilter,
+  ): T[];
 
   /**
    * Inserts a row into a table.
@@ -286,7 +286,7 @@ interface clientStore {
   update(
     tableName: string,
     ids: string[],
-    updateFunction: storageUpdateCallback
+    updateFunction: storageUpdateCallback,
   ): number;
 
   /**
@@ -299,7 +299,7 @@ interface clientStore {
   upsert(
     tableName: string,
     query: ClientStorageDataFields | storageUpdateCallbackFilter | null,
-    data: ClientStorageDataFields
+    data: ClientStorageDataFields,
   ): string[];
 
   /**
@@ -310,7 +310,7 @@ interface clientStore {
    */
   deleteRows(
     tableName: string,
-    query: string[] | ClientStorageDataFields | storageUpdateCallbackFilter
+    query?: string[] | ClientStorageDataFields | storageUpdateCallbackFilter,
   ): number;
 
   /**
@@ -321,7 +321,7 @@ interface clientStore {
    */
   createTableWithData(
     tableName: string,
-    data: ClientStorageDataFields[]
+    data: ClientStorageDataFields[],
   ): boolean;
 }
 
@@ -341,8 +341,8 @@ export {};
 declare function clientStore(
   storeName: string,
   storageEngine?: ClientStorage | typeof localStorage,
-  storePrefix?: string
-): clientStore;
+  storePrefix?: string,
+): ClientStore;
 
 // Export the factory function as default
 export default clientStore;
